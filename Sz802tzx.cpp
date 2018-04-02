@@ -498,7 +498,7 @@ void print_usage(bool title)
 		printf(  "\n  ->by Tom-Cat<-\n\n");
 	}
 	printf("Usage:\n\n");
-	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
+	printf(" Sz802tzx Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
 	printf(" -s n Loading Speed (n: 0=3230 1=3500 2=4500 (3)=5100 4=5500 5=5800 6=6000 bps)\n");
