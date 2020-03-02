@@ -501,7 +501,7 @@ void print_usage(bool title)
 	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=3000 1=3500 2=4500 (3)=5100 4=5500 5=5800 6=6000 bps)\n");
+	printf(" -s n Loading Speed (n: 0=3230 1=3500 2=4500 (3)=5100 4=5500 5=5800 6=6000 bps)\n");
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
@@ -1070,8 +1070,8 @@ static struct TurboLoadVars
 } turbo_vars[7] = {
 //	  	  	  	  	  { 0x80 + 41, 20, 2168, 667, 855 },   /*  1364 bps - uses the normal ROM timing values! */
 //                   	0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
-                   	  { 0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
-//                   	0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
+//                   	0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
+                   	{ 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
                    	{ 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	
                    	{ 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	
 //                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
