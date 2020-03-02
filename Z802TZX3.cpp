@@ -65,7 +65,7 @@ byte snap_bin[256000];
 byte WorkBuffer[65535];
 
 bool verbose = false;
-int speed_value = 3;   //Default 5100
+int speed_value = 6;   //Default 5100
 int load_colour = -1;
 bool external = false;
 char external_filename[512];
@@ -501,7 +501,8 @@ void print_usage(bool title)
 	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=3230 1=3500 2=4500 (3)=5100 4=5500 5=5800 6=6000 bps)\n");
+	printf(" -s n Loading Speed (n: 0=2250 1=3000 2=3230 3=3500 4=4500 5=5000 (6)=5100     \n");
+	printf("                                                    7=5500 8=5800  9 =6000 bps)\n");	   
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
@@ -615,7 +616,7 @@ bool parse_args(int argc, char * argv[])
 				case 's':
 					i++;
 					sscanf(argv[i], "%i", &speed_value);
-					if (speed_value < 0 || speed_value > 6)
+					if (speed_value < 0 || speed_value > 9)
 					{
 						print_error("Invalid Speed Value!");
 						return false;
@@ -1067,17 +1068,17 @@ static struct TurboLoadVars
                          /* This is just enough for the largest possible block to decompress and sync again */
   word      _LenSync0;   /* Both sync values are made equal */
   word      _Len0;       /* hb0: A '1' bit gets twice this value */
-} turbo_vars[7] = {
+} turbo_vars[10] = {
 //	  	  	  	  	  { 0x80 + 41, 20, 2168, 667, 855 },   /*  1364 bps - uses the normal ROM timing values! */
-//                   	0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
-//                   	0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
-                   	{ 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
-                   	{ 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	
-                   	{ 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	
-//                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
+                   { 0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
+                   { 0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
+                   { 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
+                   { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	   
+                   { 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	   
+                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
                    { 0x80 +  10,  3, 1740, 480, 229 },  /*  5100 bps */	   	   	   	      
-                   { 0x80 +  7,  3, 1740, 465, 212 },  /*  5500 bps */	    		      	   	   	   	   	      	  	     
-                   { 0x80 +  7,  3, 1700, 450, 200 },  /*  5800 bps */ 
+                   { 0x80 +  7,  3, 1740, 465, 212 },   /*  5500 bps */	     	 	       	    				   	   	      
+                   { 0x80 +  7,  3, 1700, 450, 200 },   /*  5800 bps */ 
                    { 0x80 +  6,  2, 1650, 450, 195 }};  /*  6000 bps */ // 197 works with Spectaculator 	 	    
 
 
