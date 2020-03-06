@@ -65,7 +65,7 @@ byte snap_bin[256000];
 byte WorkBuffer[65535];
 
 bool verbose = false;
-int speed_value = 6;   //Default 5100
+int speed_value = 7;   //Default 5100
 int load_colour = -1;
 bool external = false;
 char external_filename[512];
@@ -354,7 +354,7 @@ void init_snap(void)
 }
 
 void create_out_filename()
-{
+{	
 	strcpy(out_filename, filename);
 	int last = strlen(out_filename)-1;
 	while (out_filename[last] != '.' && last > 0)
@@ -366,10 +366,29 @@ void create_out_filename()
 		// No extension ???
 		return;
 	}
+/*
 	out_filename[last+1]='t';
 	out_filename[last+2]='z';
 	out_filename[last+3]='x';
 	out_filename[last+4]=0;
+*/
+	out_filename[last]='_';
+	out_filename[last+1]='s';
+	if (speed_value < 10) {	  
+		//out_filename[last+2]= '0';
+		last--;
+		out_filename[last+3]= char(speed_value +48);	 
+	}
+	else {
+		out_filename[last+2]= char((speed_value/10) +48);
+		out_filename[last+3]= char((speed_value % 10) +48);
+	}
+	out_filename[last+4]='.';
+	out_filename[last+5]='t';
+	out_filename[last+6]='z';	
+	out_filename[last+7]='x';
+	out_filename[last+8]=0;
+
 }
 
 void clear_name(char name[])
@@ -501,8 +520,8 @@ void print_usage(bool title)
 	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=2250 1=3000 2=3230 3=3500 4=4500 5=5000 (6)=5100     \n");
-	printf("                                                    7=5500 8=5800  9 =6000 bps)\n");	   
+	printf(" -s n Loading Speed (n: 0=1364 1=2250  2= 3000 3=3230  4=3500  5=4500     \n");
+	printf("                               6=5000 (7)=5100 8=5500  9=5800 10=6000 bps)\n");	      
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
@@ -542,7 +561,7 @@ bool parse_args(int argc, char * argv[])
 		{
 			// Snapshot filename
 			strcpy(filename, argv[1]);
-			create_out_filename();
+			//create_out_filename();
 			create_loader_name();
 			create_game_name();
 			center_name(game_name);
@@ -616,7 +635,7 @@ bool parse_args(int argc, char * argv[])
 				case 's':
 					i++;
 					sscanf(argv[i], "%i", &speed_value);
-					if (speed_value < 0 || speed_value > 9)
+					if (speed_value < 0 || speed_value > 10)
 					{
 						print_error("Invalid Speed Value!");
 						return false;
@@ -639,6 +658,7 @@ bool parse_args(int argc, char * argv[])
 				return false;
 			}
 		}
+		create_out_filename();
 	}
 
 	return true;
@@ -1068,19 +1088,19 @@ static struct TurboLoadVars
                          /* This is just enough for the largest possible block to decompress and sync again */
   word      _LenSync0;   /* Both sync values are made equal */
   word      _Len0;       /* hb0: A '1' bit gets twice this value */
-} turbo_vars[10] = {
-//	  	  	  	  	  { 0x80 + 41, 20, 2168, 667, 855 },   /*  1364 bps - uses the normal ROM timing values! */
+} turbo_vars[11] ={
+                   { 0x80 + 41, 20, 2168, 667, 855 },   /*  1364 bps - uses the normal ROM timing values! */
                    { 0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
                    { 0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
                    { 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
                    { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	   
                    { 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	   
-                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
-                   { 0x80 +  10,  3, 1740, 480, 229 },  /*  5100 bps */	   	   	   	      
+                   { 0x80 + 10,  3, 1740, 480, 233 },   /*  5000 bps */
+                   { 0x80 + 10,  3, 1740, 480, 229 },   /*  5100 bps */	   	   	   	      
                    { 0x80 +  7,  3, 1740, 465, 212 },   /*  5500 bps */	     	 	       	    				   	   	      
                    { 0x80 +  7,  3, 1700, 450, 200 },   /*  5800 bps */ 
-                   { 0x80 +  6,  2, 1650, 450, 195 }};  /*  6000 bps */ // 197 works with Spectaculator 	 	    
-
+                   { 0x80 +  6,  2, 1650, 450, 195 }    /*  6000 bps */ // 197 works with Spectaculator 	 	    
+                  };
 
 /*
   COMPARE is on 94
@@ -1869,7 +1889,7 @@ void convert_snap()
 	print_verbose("\nCreating TZX File :");
 
 	FILE * file= NULL;
-	file = fopen(out_filename,"wb");
+	file = fopen(out_filename,"w+b");
 
 	if (file == NULL)
 	{
