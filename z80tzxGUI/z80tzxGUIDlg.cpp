@@ -67,7 +67,9 @@ BOOL CZ80tzxGUIDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 	
 	// TODO: Add extra initialization here
-	
+	CheckRadioButton(IDC_RADIO2, IDC_RADIO12, IDC_RADIO9); 
+	speed=7;
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -109,7 +111,7 @@ HCURSOR CZ80tzxGUIDlg::OnQueryDragIcon()
 
 void CZ80tzxGUIDlg::OnRadio2() 
 {
-	speed = 0;	/* 1500 */	
+	speed = 0;	/* 1364 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio3() 
@@ -129,38 +131,38 @@ void CZ80tzxGUIDlg::OnRadio5()
 
 void CZ80tzxGUIDlg::OnRadio6() 
 {
-	speed = 3;	/* 3500 */	
+	speed = 4;	/* 3500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio7() 
 {
-	speed = 3;	/* 4500 */	
+	speed = 6;	/* 4500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio8() 
 {
-	speed = 3;	/* 5000 */	
+	speed = 6;	/* 5000 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio9() 
 {
-	speed = 3;	/* 5100 */	
+	speed = 7;	/* 5100 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio10() 
 {
-	speed = 3;	/* 5500 */	
+	speed = 8;	/* 5500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio11() 
 {
-	speed = 3;	/* 5800 */
+	speed = 9;	/* 5800 */
 	
 }
 
 void CZ80tzxGUIDlg::OnRadio12() 
 {
-	speed = 3;	/* 6000 */	
+	speed = 10;	/* 6000 */	
 }
 
 void CZ80tzxGUIDlg::OnCancel()
@@ -176,8 +178,9 @@ void CZ80tzxGUIDlg::OnIgnore()
 
 	//CString StrFile;      
 	CString defExe("");
-	CString defFileName("*.sna");
-	CString defFilter("(*.z80)|*.z80|(*.sna)|*.sna|");
+	CString defFileName("");
+	//CString defFilter("(*.z80)|*.z80|(*.sna)|*.sna|");
+	CString defFilter("zx Snapshot files(*.sna;*.z80)|*.sna;*.z80|All files(*.*)|*.*|");
 	CFileDialog dlg(true,defExe,defFileName,OFN_HIDEREADONLY|OFN_OVERWRITEPROMPT,defFilter);
 	dlg.m_ofn.lpstrInitialDir= _T(".\\"); 
 	if(dlg.DoModal()==IDOK)
@@ -202,8 +205,8 @@ void CZ80tzxGUIDlg::OnOK()
 	strcat (cmdargs, speedstr);
 
 	//rc = ShellExecute (NULL, "open", "http://123.456.789.001", NULL, NULL, SW_SHOWMAXIMIZED);
-	rc = ShellExecute (NULL, "open", "z802tzx.exe", cmdargs, NULL, SW_SHOWMAXIMIZED);		
-	CDialog::OnOK();
+	rc = ShellExecute (NULL, "open", "z802tzx3.exe", cmdargs, NULL, SW_SHOWMAXIMIZED);		
+	//CDialog::OnOK();
 }
 
 

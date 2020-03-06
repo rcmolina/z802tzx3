@@ -7,7 +7,7 @@ LastTemplate=CDialog
 NewFileInclude1=#include "stdafx.h"
 NewFileInclude2=#include "z80tzxGUI.h"
 
-ClassCount=4
+ClassCount=2
 Class1=CZ80tzxGUIApp
 Class2=CZ80tzxGUIDlg
 
@@ -28,6 +28,7 @@ ImplementationFile=z80tzxGUIDlg.cpp
 Filter=D
 BaseClass=CDialog
 VirtualFilter=dWC
+LastObject=IDC_RADIO4
 
 
 

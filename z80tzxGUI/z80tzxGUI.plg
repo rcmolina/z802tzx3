@@ -7,28 +7,9 @@
 </h3>
 <h3>Command Lines</h3>
 Creating command line "rc.exe /l 0xc0a /fo"Release/z80tzxGUI.res" /d "NDEBUG" /d "_AFXDLL" "C:\Users\Rafael\Documents\MSVC\z80tzxGUI\z80tzxGUI.rc"" 
-Creating temporary file "C:\Users\Rafael\AppData\Local\Temp\RSP2551.tmp" with contents
-[
-/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Release/z80tzxGUI.pch" /Yu"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
-"C:\Users\Rafael\Documents\MSVC\z80tzxGUI\z80tzxGUI.cpp"
-"C:\Users\Rafael\Documents\MSVC\z80tzxGUI\z80tzxGUIDlg.cpp"
-]
-Creating command line "cl.exe @C:\Users\Rafael\AppData\Local\Temp\RSP2551.tmp" 
-Creating temporary file "C:\Users\Rafael\AppData\Local\Temp\RSP2552.tmp" with contents
-[
-/nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Fp"Release/z80tzxGUI.pch" /Yc"stdafx.h" /Fo"Release/" /Fd"Release/" /FD /c 
-"C:\Users\Rafael\Documents\MSVC\z80tzxGUI\StdAfx.cpp"
-]
-Creating command line "cl.exe @C:\Users\Rafael\AppData\Local\Temp\RSP2552.tmp" 
 Creating command line "link.exe /nologo /subsystem:windows /incremental:no /pdb:"Release/z80tzxGUI.pdb" /machine:I386 /out:"Release/z80tzxGUI.exe"  .\Release\StdAfx.obj .\Release\z80tzxGUI.obj .\Release\z80tzxGUIDlg.obj .\Release\z80tzxGUI.res "
 <h3>Output Window</h3>
 Compiling resources...
-Compiling...
-StdAfx.cpp
-Compiling...
-z80tzxGUI.cpp
-z80tzxGUIDlg.cpp
-Generating Code...
 Linking...
 
 
