@@ -79,7 +79,7 @@ EXSTYLE WS_EX_APPWINDOW
 CAPTION "z80tzxGUI"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "Select File",IDIGNORE,279,48,50,14
+    DEFPUSHBUTTON   "Select File",IDIGNORE,280,48,50,14
     PUSHBUTTON      "Convert",IDOK,332,48,50,14
     GROUPBOX        "Loading speed (baud)",IDC_STATIC,7,7,375,40
     CONTROL         "1364",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,16,24,32,
@@ -104,6 +104,8 @@ BEGIN
                     10
     CONTROL         "6000",IDC_RADIO12,"Button",BS_AUTORADIOBUTTON,337,24,32,
                     10
+    LTEXT           "https://github.com/rcmolina              MaxDuino  project companion help tool",
+                    IDC_STATIC,7,53,266,9
 END
 
 

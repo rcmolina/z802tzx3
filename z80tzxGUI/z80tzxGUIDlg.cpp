@@ -65,6 +65,7 @@ BOOL CZ80tzxGUIDlg::OnInitDialog()
 	//  when the application's main window is not a dialog
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
+
 	
 	// TODO: Add extra initialization here
 	CheckRadioButton(IDC_RADIO2, IDC_RADIO12, IDC_RADIO9); 
