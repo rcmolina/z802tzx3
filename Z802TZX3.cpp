@@ -373,21 +373,92 @@ void create_out_filename()
 	out_filename[last+4]=0;
 */
 	out_filename[last]='_';
-	out_filename[last+1]='s';
-	if (speed_value < 10) {	  
-		//out_filename[last+2]= '0';
-		last--;
-		out_filename[last+3]= char(speed_value +48);	 
+	
+	switch (speed_value)
+	{
+	case 0:		//1364
+		out_filename[last+1]='1';
+		out_filename[last+2]='3';
+		out_filename[last+3]='6';
+		out_filename[last+4]='4';	  
+		break;
+	
+	case 1:		//2250
+		out_filename[last+1]='2';
+		out_filename[last+2]='2';
+		out_filename[last+3]='5';
+		out_filename[last+4]='0';	  	   	   
+		break;
+	
+	case 2:		//3000
+		out_filename[last+1]='3';
+		out_filename[last+2]='0';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  	   
+		break;
+	
+	case 3:		//3230
+		out_filename[last+1]='3';
+		out_filename[last+2]='2';
+		out_filename[last+3]='3';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 4:		//3500
+		out_filename[last+1]='3';
+		out_filename[last+2]='5';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 5:		//4500
+		out_filename[last+1]='4';
+		out_filename[last+2]='5';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 6:		//5000
+		out_filename[last+1]='5';
+		out_filename[last+2]='0';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 7:		//5100
+		out_filename[last+1]='5';
+		out_filename[last+2]='1';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 8:		//5500
+		out_filename[last+1]='5';
+		out_filename[last+2]='5';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 9:		//5800
+		out_filename[last+1]='5';
+		out_filename[last+2]='8';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 10:	//6000
+		out_filename[last+1]='6';
+		out_filename[last+2]='0';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
 	}
-	else {
-		out_filename[last+2]= char((speed_value/10) +48);
-		out_filename[last+3]= char((speed_value % 10) +48);
-	}
-	out_filename[last+4]='.';
-	out_filename[last+5]='t';
-	out_filename[last+6]='z';	
-	out_filename[last+7]='x';
-	out_filename[last+8]=0;
+	out_filename[last+5]='b';	
+	out_filename[last+6]='.';
+	out_filename[last+7]='t';
+	out_filename[last+8]='z';	
+	out_filename[last+9]='x';
+	out_filename[last+10]=0;
 
 }
 
