@@ -28,14 +28,14 @@ ImplementationFile=z80tzxGUIDlg.cpp
 Filter=D
 BaseClass=CDialog
 VirtualFilter=dWC
-LastObject=IDC_RADIO4
+LastObject=CZ80tzxGUIDlg
 
 
 
 [DLG:IDD_Z80TZXGUI_DIALOG]
 Type=1
 Class=CZ80tzxGUIDlg
-ControlCount=15
+ControlCount=17
 Control1=IDIGNORE,button,1342242817
 Control2=IDOK,button,1342242816
 Control3=IDC_STATIC,button,1342177287
@@ -51,4 +51,6 @@ Control12=IDC_RADIO10,button,1342177289
 Control13=IDC_RADIO11,button,1342177289
 Control14=IDC_RADIO12,button,1342177289
 Control15=IDC_STATIC,static,1342308352
+Control16=IDC_STATIC,static,1342308352
+Control17=IDC_RADIO13,button,1342177289
 

@@ -11,7 +11,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-int speed;
+#define MAXs  11
+
+int speed[MAXs];
 CString StrFile;  
 
 /////////////////////////////////////////////////////////////////////////////
@@ -51,6 +53,7 @@ BEGIN_MESSAGE_MAP(CZ80tzxGUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_RADIO11, OnRadio11)
 	ON_BN_CLICKED(IDC_RADIO12, OnRadio12)
 	ON_BN_CLICKED(IDIGNORE, OnIgnore)
+	ON_BN_CLICKED(IDC_RADIO13, OnRadio13)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -69,7 +72,7 @@ BOOL CZ80tzxGUIDlg::OnInitDialog()
 	
 	// TODO: Add extra initialization here
 	CheckRadioButton(IDC_RADIO2, IDC_RADIO12, IDC_RADIO9); 
-	speed=7;
+	speed[7]=1;
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -112,64 +115,82 @@ HCURSOR CZ80tzxGUIDlg::OnQueryDragIcon()
 
 void CZ80tzxGUIDlg::OnRadio2() 
 {
-	speed = 0;	/* 1364 */	
+
+	speed[0] = 1;	/* 1364 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio3() 
 {
-	speed = 1;	/* 2250 */	
+
+	speed[1] = 1;	/* 2250 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio4() 
 {
-	speed = 2;	/* 3000 */	
+
+	speed[2] = 1;	/* 3000 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio5() 
 {
-	speed = 3;	/* 3230 */	
+
+	speed[3] = 1;	/* 3230 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio6() 
 {
-	speed = 4;	/* 3500 */	
+
+	speed[4] = 1;	/* 3500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio7() 
 {
-	speed = 6;	/* 4500 */	
+
+	speed[5] = 1;	/* 4500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio8() 
 {
-	speed = 6;	/* 5000 */	
+
+	speed[6] = 1;	/* 5000 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio9() 
 {
-	speed = 7;	/* 5100 */	
+
+	speed[7] = 1;	/* 5100 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio10() 
 {
-	speed = 8;	/* 5500 */	
+
+	speed[8] = 1;	/* 5500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio11() 
 {
-	speed = 9;	/* 5800 */
+
+	speed[9] = 1;	/* 5800 */
 	
 }
 
 void CZ80tzxGUIDlg::OnRadio12() 
 {
-	speed = 10;	/* 6000 */	
+
+	speed[10] = 1;	/* 6000 */	
+}
+
+void CZ80tzxGUIDlg::OnRadio13() 
+{
+	int i;
+	for (i=0;i<MAXs;i++) speed[i]=1;
 }
 
 void CZ80tzxGUIDlg::OnCancel()
 {
 	CDialog::OnCancel();
 }
+
 
 void CZ80tzxGUIDlg::OnIgnore()
 {
@@ -193,21 +214,31 @@ void CZ80tzxGUIDlg::OnIgnore()
 
 }
 
+
 void CZ80tzxGUIDlg::OnOK() 
 {
 	char cmdargs[256];
 	char speedstr[4];
 	HINSTANCE rc;
+	int i;
 
-	itoa(speed,speedstr,10); 
+	for (i=0; i<MAXs; i++) {
 
-	strcpy (cmdargs, StrFile);	
-	strcat (cmdargs, " -s "); 
-	strcat (cmdargs, speedstr);
+		if (speed[i]) {
+			itoa(i,speedstr,10); 
 
-	//rc = ShellExecute (NULL, "open", "http://123.456.789.001", NULL, NULL, SW_SHOWMAXIMIZED);
-	rc = ShellExecute (NULL, "open", "z802tzx3.exe", cmdargs, NULL, SW_SHOWMAXIMIZED);		
-	//CDialog::OnOK();
+			strcpy (cmdargs, StrFile);	
+			strcat (cmdargs, " -s "); 
+			strcat (cmdargs, speedstr);
+
+			//rc = ShellExecute (NULL, "open", "http://123.456.789.001", NULL, NULL, SW_SHOWMAXIMIZED);
+			rc = ShellExecute (NULL, "open", "z802tzx3.exe", cmdargs, NULL, SW_SHOWMAXIMIZED);		
+			//CDialog::OnOK();
+		}
+
+	}
+
+	for (i=0;i<MAXs;i++) speed[i]=0;
+
 }
-
 

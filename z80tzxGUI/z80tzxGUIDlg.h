@@ -49,6 +49,7 @@ protected:
 	afx_msg void OnRadio10();
 	afx_msg void OnRadio11();
 	afx_msg void OnRadio12();
+	afx_msg void OnRadio13();
 	virtual void OnCancel();
 	virtual void OnOK();
 	afx_msg void OnIgnore();

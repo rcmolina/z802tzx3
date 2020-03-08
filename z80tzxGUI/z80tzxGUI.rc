@@ -73,15 +73,15 @@ IDR_MAINFRAME           ICON    DISCARDABLE     "res\\z80tzxGUI.ico"
 // Dialog
 //
 
-IDD_Z80TZXGUI_DIALOG DIALOGEX 0, 0, 389, 69
+IDD_Z80TZXGUI_DIALOG DIALOGEX 0, 0, 413, 69
 STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "z80tzxGUI"
 FONT 8, "MS Sans Serif"
 BEGIN
-    DEFPUSHBUTTON   "Select File",IDIGNORE,280,48,50,14
-    PUSHBUTTON      "Convert",IDOK,332,48,50,14
-    GROUPBOX        "Loading speed (baud)",IDC_STATIC,7,7,375,40
+    DEFPUSHBUTTON   "Select File",IDIGNORE,305,48,50,14
+    PUSHBUTTON      "Convert",IDOK,356,48,50,14
+    GROUPBOX        "Loading speed (baud)",IDC_STATIC,7,7,399,40
     CONTROL         "1364",IDC_RADIO2,"Button",BS_AUTORADIOBUTTON,16,24,32,
                     10
     CONTROL         "2250",IDC_RADIO3,"Button",BS_AUTORADIOBUTTON,49,24,32,
@@ -104,8 +104,11 @@ BEGIN
                     10
     CONTROL         "6000",IDC_RADIO12,"Button",BS_AUTORADIOBUTTON,337,24,32,
                     10
-    LTEXT           "https://github.com/rcmolina              MaxDuino  project companion help tool",
-                    IDC_STATIC,7,53,266,9
+    LTEXT           "https://github.com/rcmolina ",IDC_STATIC,7,53,93,9
+    LTEXT           "   MaxDuino  project companion help tool",IDC_STATIC,
+                    140,53,138,9
+    CONTROL         "ALL",IDC_RADIO13,"Button",BS_AUTORADIOBUTTON,368,24,29,
+                    10
 END
 
 
@@ -163,7 +166,7 @@ BEGIN
     IDD_Z80TZXGUI_DIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 382
+        RIGHTMARGIN, 406
         TOPMARGIN, 7
         BOTTOMMARGIN, 62
     END
