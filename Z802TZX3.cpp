@@ -1117,11 +1117,17 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*              PilotMin = 1453 + 16a = 1453 + 16*7 = 1565 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*7 = 3242 T => 1900 T                                                            */
 /*              Sync0 = 840 + 16a = 840 + 16*7 = 952 T => 550 T                                                                   */
+/*  4094 bps => 2566 T => hb0 = 285 T, hb1 = 570 T, avg = 428 (855) T       <-- ROM speed * 3                                     */
+/*              279 + 32a + 43b = 855 => 32x + 86x = 576 => 118x = 576 => x = 4.88                                                */
+/*              279 + 32*5 + 43*10 = 869 (855 needed), so a = 5, b = 10, bd = 14                                                  */
+/*              PilotMin = 1453 + 16a = 1453 + 16*5 = 1533 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*5 = 3210 T => XXX T                                                             */
+/*              Sync0 = 840 + 16a = 840 + 16*5 = 920 T => XXX T                                                                   */
 /*  4500 bps => 778 T => hb0 = 259 T, hb1 = 518 T, avg = 389 (777) T                                                              */
 /*              279 + 32a + 43b = 777 => 32x + 86x = 498 => 118x = 498 => x = 4.2                                                 */
 /*              279 + 32*4 + 43*9 = 794 (777 needed), so a = 4, b = 9, bd = 12                                                    */
 /*              PilotMin = 1453 + 16a = 1453 + 16*4 = 1517 T                                                                      */
-/*              PilotMax = 3130 + 16a = 3130 + 16*4 = 3194 T =>  T=1800                                                            */
+/*              PilotMax = 3130 + 16a = 3130 + 16*4 = 3194 T =>  T=1800                                                           */
 /*              Sync0 = 840 + 16a = 840 + 16*4 = 904 T =>  500 T                                                                  */
 /*  5000 bps => 700 T => hb0 = 233 T, hb1 = 466 T, avg = 350 (699) T                                                              */
 /*              279 + 32a + 43b = 699 => 32x + 86x = 420 => 118x = 420 => x = 3.6                                                 */
@@ -1130,14 +1136,14 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*              PilotMax = 3130 + 16a = 3130 + 16*3 = 3178 T =>  T=1740                                                           */
 /*              Sync0 = 840 + 16a = 840 + 16*3 = 888 T =>  480 T                                                                  */
 /*  5250 bps => 666 T => hb0 = 222 T, hb1 = 444 T, avg = 333 (666) T                                                              */
-/*              279 + 32a + 43b = 666 => 32x + 86x = 387 => 118x = 387 => x = 3.3                                                  */
-/*              279 + 32*3 + 43*7 = 676 (666 needed), so a = 3, b = 7, bd = 9                                                    */
+/*              279 + 32a + 43b = 666 => 32x + 86x = 387 => 118x = 387 => x = 3.3                                                 */
+/*              279 + 32*3 + 43*7 = 676 (666 needed), so a = 3, b = 7, bd = 9                                                     */
 /*              PilotMin = 1453 + 16a = 1453 + 16*3 = 1501 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*3 = 3178 T =>  T=1740                                                           */
 /*              Sync0 = 840 + 16a = 840 + 16*4 = 904 T =>  480 T                                                                  */
 /*  5500 bps => 636 T => hb0 = 212 T, hb1 = 424 T, avg = 318 (636) T                                                              */
-/*              279 + 32a + 43b = 636 => 32x + 86x = 357 => 118x = 357 => x = 3                                                  */
-/*              279 + 32*3 + 43*7 = 676 (636 needed), so a = 3, b = 7, bd = 9                                                    */
+/*              279 + 32a + 43b = 636 => 32x + 86x = 357 => 118x = 357 => x = 3                                                   */
+/*              279 + 32*3 + 43*7 = 676 (636 needed), so a = 3, b = 7, bd = 9                                                     */
 /*              PilotMin = 1453 + 16a = 1453 + 16*3 = 1501 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*3 = 3178 T =>  T=1740                                                           */
 /*              Sync0 = 840 + 16a = 840 + 16*4 = 904 T =>  480 T                                                                  */
@@ -1164,7 +1170,8 @@ static struct TurboLoadVars
                    { 0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
                    { 0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
                    { 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
-                   { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	   
+                   { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */
+                 //  { 0x80 + 14,  5, 1800, 500, 285 },   /*  4100 bps */				 	 
                    { 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	   
                    { 0x80 + 10,  3, 1740, 480, 233 },   /*  5000 bps */
                    { 0x80 + 10,  3, 1740, 480, 229 },   /*  5100 bps */	   	   	   	      
@@ -1564,7 +1571,7 @@ void create_main_data()
 	tzx_turbo_head[12]      = (word)((dword)3500000 * 0.5 / turbo_vars[speed_value]._LenPilot)>>8;
 	tzx_turbo_head[13]      = 8;
 	//tzx_turbo_head[14]      = 0; //Pause after this block LSB
-	tzx_turbo_head[14]      = 100; //Pause after this block LSB
+	tzx_turbo_head[14]      = 255; //Pause after this block LSB
 	tzx_turbo_head[15]      = 0;   //Pause after this block MSB
 	tzx_turbo_head[16]      = 0;	// Lowest two filled in later
 	tzx_turbo_head[17]      = 0;

@@ -1475,7 +1475,7 @@ void create_main_data()
 	tzx_turbo_head[12]      = (word)((dword)3500000 * 0.5 / turbo_vars[speed_value]._LenPilot)>>8;
 	tzx_turbo_head[13]      = 8;
 	//tzx_turbo_head[14]      = 0; //Pause after this block LSB
-	tzx_turbo_head[14]      = 100; //Pause after this block LSB
+	tzx_turbo_head[14]      = 255; //Pause after this block LSB
 	tzx_turbo_head[15]      = 0;   //Pause after this block MSB
 	tzx_turbo_head[16]      = 0;	// Lowest two filled in later
 	tzx_turbo_head[17]      = 0;

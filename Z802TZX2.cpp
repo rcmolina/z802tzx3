@@ -1063,7 +1063,7 @@ static struct TurboLoadVars
   byte      _Compare;    /* Variable 'bd' + starting value (+80) */
   byte      _Delay;      /* Variable 'a' */
   /* Timing values as stored in the TZX block header (unless ROM speed) */
-  word      _LenPilot;   /* Number of pilot pulses is calculated to make the pilot take exactly 1 second */
+  word      _LenPilot;   /* Number of pilot pulses is calculated to make the pilot take exactly 0.5 second */
                          /* This is just enough for the largest possible block to decompress and sync again */
   word      _LenSync0;   /* Both sync values are made equal */
   word      _Len0;       /* hb0: A '1' bit gets twice this value */
@@ -1077,8 +1077,8 @@ static struct TurboLoadVars
 //                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
                    { 0x80 +  10,  3, 1740, 480, 229 },  /*  5100 bps */	   	   	   	      
                    { 0x80 +  7,  3, 1740, 465, 212 },  /*  5500 bps */	    		      	   	   	   	   	      	  	     
-                   { 0x80 +  7,  3, 1740, 465, 200 },  /*  5800 bps */ 
-                   { 0x80 +  6,  2, 1740, 455, 195 }};  /*  6000 bps */ // 197 works with Spectaculator	    		   
+                   { 0x80 +  7,  3, 1700, 465, 200 },  /*  5800 bps */ 
+                   { 0x80 +  6,  2, 1650, 455, 195 }};  /*  6000 bps */ // 197 works with Spectaculator 	 	    
 
 
 /*
@@ -1448,11 +1448,12 @@ void create_main_data()
 	tzx_turbo_head[8]       = turbo_vars[speed_value]._Len0>>8;
 	tzx_turbo_head[9]       = (turbo_vars[speed_value]._Len0*2)&255;
 	tzx_turbo_head[10]      = (turbo_vars[speed_value]._Len0*2)>>8;
-	tzx_turbo_head[11]      = (word)((dword)3500000 / turbo_vars[speed_value]._LenPilot)&255;
-	tzx_turbo_head[12]      = (word)((dword)3500000 / turbo_vars[speed_value]._LenPilot)>>8;
+	tzx_turbo_head[11]      = (word)((dword)3500000 * 0.5 / turbo_vars[speed_value]._LenPilot)&255;
+	tzx_turbo_head[12]      = (word)((dword)3500000 * 0.5 / turbo_vars[speed_value]._LenPilot)>>8;
 	tzx_turbo_head[13]      = 8;
-	tzx_turbo_head[14]      = 0;
-	tzx_turbo_head[15]      = 0;
+	//tzx_turbo_head[14]      = 0; //Pause after this block LSB
+	tzx_turbo_head[14]      = 255; //Pause after this block LSB
+	tzx_turbo_head[15]      = 0;   //Pause after this block MSB
 	tzx_turbo_head[16]      = 0;	// Lowest two filled in later
 	tzx_turbo_head[17]      = 0;
 	tzx_turbo_head[18]      = 0;	// Highest byte of length is 0 !
