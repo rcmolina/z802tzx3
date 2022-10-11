@@ -92,17 +92,17 @@ BEGIN
                     10
     CONTROL         "3500",IDC_RADIO6,"Button",BS_AUTORADIOBUTTON,147,24,32,
                     10
-    CONTROL         "4500",IDC_RADIO7,"Button",BS_AUTORADIOBUTTON,178,24,32,
+    CONTROL         "4100",IDC_RADIO7,"Button",BS_AUTORADIOBUTTON,178,24,32,
                     10
-    CONTROL         "5000",IDC_RADIO8,"Button",BS_AUTORADIOBUTTON,209,24,32,
+    CONTROL         "4500",IDC_RADIO8,"Button",BS_AUTORADIOBUTTON,209,24,32,
                     10
-    CONTROL         "5100",IDC_RADIO9,"Button",BS_AUTORADIOBUTTON,241,24,32,
+    CONTROL         "5000",IDC_RADIO9,"Button",BS_AUTORADIOBUTTON,241,24,32,
                     10
-    CONTROL         "5500",IDC_RADIO10,"Button",BS_AUTORADIOBUTTON,273,24,32,
+    CONTROL         "5100",IDC_RADIO10,"Button",BS_AUTORADIOBUTTON,273,24,32,
                     10
-    CONTROL         "5800",IDC_RADIO11,"Button",BS_AUTORADIOBUTTON,305,24,32,
+    CONTROL         "5500",IDC_RADIO11,"Button",BS_AUTORADIOBUTTON,305,24,32,
                     10
-    CONTROL         "6000",IDC_RADIO12,"Button",BS_AUTORADIOBUTTON,337,24,32,
+    CONTROL         "5800",IDC_RADIO12,"Button",BS_AUTORADIOBUTTON,337,24,32,
                     10
     LTEXT           "https://github.com/rcmolina ",IDC_STATIC,7,53,93,9
     LTEXT           "   MaxDuino  project companion help tool",IDC_STATIC,

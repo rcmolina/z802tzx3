@@ -146,38 +146,38 @@ void CZ80tzxGUIDlg::OnRadio6()
 void CZ80tzxGUIDlg::OnRadio7() 
 {
 
-	speed[5] = 1;	/* 4500 */	
+	speed[5] = 1;	/* 4100 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio8() 
 {
 
-	speed[6] = 1;	/* 5000 */	
+	speed[6] = 1;	/* 4500 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio9() 
 {
 
-	speed[7] = 1;	/* 5100 */	
+	speed[7] = 1;	/* 5000 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio10() 
 {
 
-	speed[8] = 1;	/* 5500 */	
+	speed[8] = 1;	/* 5100 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio11() 
 {
 
-	speed[9] = 1;	/* 5800 */
+	speed[9] = 1;	/* 5500 */
 	
 }
 
 void CZ80tzxGUIDlg::OnRadio12() 
 {
 
-	speed[10] = 1;	/* 6000 */	
+	speed[10] = 1;	/* 5800 */	
 }
 
 void CZ80tzxGUIDlg::OnRadio13() 
