@@ -65,7 +65,7 @@ byte snap_bin[256000];
 byte WorkBuffer[65535];
 
 bool verbose = false;
-int speed_value = 7;   //Default 5100
+int speed_value = 10;   //Default 5800
 int load_colour = -1;
 bool external = false;
 char external_filename[512];
@@ -411,44 +411,44 @@ void create_out_filename()
 		out_filename[last+4]='0';	  
 		break;
 	
-	case 5:		//4500
+	case 5:		//4100
+		out_filename[last+1]='4';
+		out_filename[last+2]='1';
+		out_filename[last+3]='0';
+		out_filename[last+4]='0';	  
+		break;
+	
+	case 6:		//4500
 		out_filename[last+1]='4';
 		out_filename[last+2]='5';
 		out_filename[last+3]='0';
 		out_filename[last+4]='0';	  
 		break;
 	
-	case 6:		//5000
+	case 7:		//5000
 		out_filename[last+1]='5';
 		out_filename[last+2]='0';
 		out_filename[last+3]='0';
 		out_filename[last+4]='0';	  
 		break;
 	
-	case 7:		//5100
+	case 8:		//5100
 		out_filename[last+1]='5';
 		out_filename[last+2]='1';
 		out_filename[last+3]='0';
 		out_filename[last+4]='0';	  
 		break;
 	
-	case 8:		//5500
+	case 9:		//5500
 		out_filename[last+1]='5';
 		out_filename[last+2]='5';
 		out_filename[last+3]='0';
 		out_filename[last+4]='0';	  
 		break;
 	
-	case 9:		//5800
+	case 10:	//5800
 		out_filename[last+1]='5';
 		out_filename[last+2]='8';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 10:	//6000
-		out_filename[last+1]='6';
-		out_filename[last+2]='0';
 		out_filename[last+3]='0';
 		out_filename[last+4]='0';	  
 		break;
@@ -591,8 +591,8 @@ void print_usage(bool title)
 	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=1364 1=2250  2= 3000 3=3230  4=3500  5=4500     \n");
-	printf("                               6=5000 (7)=5100 8=5500  9=5800 10=6000 bps)\n");	      
+	printf(" -s n Loading Speed (n: 0=1364 1=2250  2=3000 3=3230  4=3500   5= 4100     \n");
+	printf("                               6=4500  7=5000 8=5100  9=5500 (10)=5800 bps)\n");	   
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
@@ -1117,7 +1117,51 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*              PilotMin = 1453 + 16a = 1453 + 16*7 = 1565 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*7 = 3242 T => 1900 T                                                            */
 /*              Sync0 = 840 + 16a = 840 + 16*7 = 952 T => 550 T                                                                   */
-/*  4094 bps => 2566 T => hb0 = 285 T, hb1 = 570 T, avg = 428 (855) T       <-- ROM speed * 3                                     */
+
+/*  3500 bps => 1000 T => hb0 = 333 T, hb1 = 667 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 1000 => 32x + 86x = 721 => 118x = 721 => x = 6                                                */
+/*              279 + 32*6 + 43*13 = 1030 (100 needed), so a = 6, b = 13, bd = 30                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*6 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*6 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*6 = 952 T => 550 T                                                                   */
+
+/*  3600 bps => 972 T => hb0 = 324 T, hb1 = 648 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 972 => 32x + 86x = 693 => 118x = 693 => x = 6                                                */
+/*              279 + 32*6 + 43*12 = 987 (972 needed), so a = 6, b = 12, bd = 15                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*6 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*6 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*6 = 952 T => 550 T                                                                   */
+
+/*  3700 bps => 946 T => hb0 = 315 T, hb1 = 631 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 946 => 32x + 86x = 667 => 118x = 667 => x = 6                                                */
+/*              279 + 32*6 + 43*11 = 944 (946 needed), so a = 6, b = 11, bd = 2                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*6 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*6 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*6 = 952 T => 550 T                                                                   */
+
+/*  3800 bps => 921 T => hb0 = 307 T, hb1 = 614 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 921 => 32x + 86x = 642 => 118x = 642 => x = 5                                                */
+/*              279 + 32*5 + 43*11 = 912 (921 needed), so a = 5, b = 11, bd = 9                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*5 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*5 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*5 = 952 T => 550 T                                                                   */
+
+/*  3900 bps => 897 T => hb0 = 299 T, hb1 = 598 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 897 => 32x + 86x = 618 => 118x = 618 => x = 5                                                */
+/*              279 + 32*5 + 43*11 = 912 (897 needed), so a = 5, b = 11, bd = 15                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*5 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*5 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*5 = 952 T => 550 T                                                                   */
+
+/*  4000 bps => 875 T => hb0 = 292 T, hb1 = 583 T, avg = 584 (1167) T                                                            */
+/*              279 + 32a + 43b = 875 => 32x + 86x = 596 => 118x = 596 => x = 5                                                */
+/*              279 + 32*5 + 43*10 = 869 (875 needed), so a = 5, b = 11, bd = 6                                                */
+/*              PilotMin = 1453 + 16a = 1453 + 16*5 = 1565 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*5 = 3242 T => 1900 T                                                            */
+/*              Sync0 = 840 + 16a = 840 + 16*5 = 952 T => 550 T                                                                   */
+
+
+/*  4094 bps => 855 T => hb0 = 285 T, hb1 = 570 T, avg = 428 (855) T       <-- ROM speed * 3                                     */
 /*              279 + 32a + 43b = 855 => 32x + 86x = 576 => 118x = 576 => x = 4.88                                                */
 /*              279 + 32*5 + 43*10 = 869 (855 needed), so a = 5, b = 10, bd = 14                                                  */
 /*              PilotMin = 1453 + 16a = 1453 + 16*5 = 1533 T                                                                      */
@@ -1129,6 +1173,8 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*              PilotMin = 1453 + 16a = 1453 + 16*4 = 1517 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*4 = 3194 T =>  T=1800                                                           */
 /*              Sync0 = 840 + 16a = 840 + 16*4 = 904 T =>  500 T                                                                  */
+
+
 /*  5000 bps => 700 T => hb0 = 233 T, hb1 = 466 T, avg = 350 (699) T                                                              */
 /*              279 + 32a + 43b = 699 => 32x + 86x = 420 => 118x = 420 => x = 3.6                                                 */
 /*              279 + 32*3 + 43*8 = 719 (699 needed), so a = 3, b = 8, bd = 10                                                    */
@@ -1170,14 +1216,21 @@ static struct TurboLoadVars
                    { 0x80 + 24, 11, 2000, 600, 518 },   /*  2250 bps */
                    { 0x80 + 18,  7, 1900, 550, 389 },   /*  3000 bps */
                    { 0x80 + 16,  7, 1900, 526, 361 },   /*  3230 bps */
-                   { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */
-                 //  { 0x80 + 14,  5, 1800, 500, 285 },   /*  4100 bps */				 	 
+                   { 0x80 + 14,  6, 1900, 526, 333 },   /*  3500 bps */	   	   	      
+				   
+                 //  { 0x80 + 15,  6, 1900, 526, 324 },   /*  3600 bps */
+                 //  { 0x80 +  6,  6, 1850, 512, 315 },   /*  3700 bps */
+                 //  { 0x80 +  9,  5, 1850, 512, 307 },   /*  3800 bps */
+                 //  { 0x80 + 15,  5, 1850, 512, 299 },   /*  3900 bps */
+                 //  { 0x80 +  6,  5, 1800, 500, 292 },   /*  4000 bps */
+				   	   	   	      
+                   { 0x80 + 14,  5, 1800, 500, 285 },   /*  4100 bps */	  	  	  	   	   
                    { 0x80 + 12,  4, 1800, 500, 259 },   /*  4500 bps */	   
                    { 0x80 + 10,  3, 1740, 480, 233 },   /*  5000 bps */
                    { 0x80 + 10,  3, 1740, 480, 229 },   /*  5100 bps */	   	   	   	      
                    { 0x80 +  7,  3, 1740, 465, 212 },   /*  5500 bps */	     	 	       	    				   	   	      
                    { 0x80 +  7,  3, 1700, 450, 200 },   /*  5800 bps */ 
-                   { 0x80 +  6,  2, 1650, 450, 195 }    /*  6000 bps */ // 197 works with Spectaculator 	 	    
+                 //  { 0x80 +  6,  2, 1650, 450, 195 }    /*  6000 bps */ // 197 works with Spectaculator 	   	      
                   };
 
 /*
