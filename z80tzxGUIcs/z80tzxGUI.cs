@@ -121,7 +121,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(266, 20),
-	    Text = "4500"
+	    Text = "4100"
 	};
 	radioButton5.CheckedChanged += new System.EventHandler(radioButton5_CheckedChanged);
 
@@ -129,7 +129,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(316, 20),
-	    Text = "5000"
+	    Text = "4500"
 	};
 	radioButton6.CheckedChanged += new System.EventHandler(radioButton6_CheckedChanged);
 
@@ -137,7 +137,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(366, 20),
-	    Text = "5100"
+	    Text = "5000"
 	};
 	radioButton7.CheckedChanged += new System.EventHandler(radioButton7_CheckedChanged);	
 
@@ -145,7 +145,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(416, 20),
-	    Text = "5500"
+	    Text = "5100"
 	};
 	radioButton8.CheckedChanged += new System.EventHandler(radioButton8_CheckedChanged);
 
@@ -153,7 +153,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(466, 20),
-	    Text = "5800"
+	    Text = "5500"
 	};
 	radioButton9.CheckedChanged += new System.EventHandler(radioButton9_CheckedChanged);
 
@@ -161,7 +161,7 @@ public class OpenFileDialogForm : Form
 	{
 	    Size = new Size(50, 20),
             Location = new Point(516, 20),
-	    Text = "6000"
+	    Text = "5800"
 	};
 	radioButton10.CheckedChanged += new System.EventHandler(radioButton10_CheckedChanged);
 
@@ -205,7 +205,7 @@ public class OpenFileDialogForm : Form
 
 	///////////////////////
 	// Default RadioButton
-	radioButton7.Checked = true; speed[7] = 1;
+	radioButton10.Checked = true; speed[10] = 1;
 
     	// Enable drag and drop for this form
     	// (this can also be applied to any controls)
@@ -321,7 +321,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton5.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[5] = 1;	/* 4500 */
+		speed[5] = 1;	/* 4100 */
 	}	
     }
     private void radioButton6_CheckedChanged (object sender, EventArgs e)
@@ -329,7 +329,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton6.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[6] = 1;	/* 5000 */
+		speed[6] = 1;	/* 4500 */
 	}	
     }
     private void radioButton7_CheckedChanged (object sender, EventArgs e)
@@ -337,7 +337,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton7.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[7] = 1;	/* 5100 */
+		speed[7] = 1;	/* 5000 */
 	}	
     }
     private void radioButton8_CheckedChanged (object sender, EventArgs e)
@@ -345,7 +345,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton8.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[8] = 1; /* 5500 */
+		speed[8] = 1; /* 5100 */
 	}	
     }
     private void radioButton9_CheckedChanged (object sender, EventArgs e)
@@ -353,7 +353,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton9.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[9] = 1; /* 5800 */
+		speed[9] = 1; /* 5500 */
 	}	
     }
     private void radioButton10_CheckedChanged (object sender, EventArgs e)
@@ -361,7 +361,7 @@ public class OpenFileDialogForm : Form
 	int i;	
         if (radioButton10.Checked == true) {
 		for (i=0;i<11;i++) speed[i]=0;
-		speed[9] = 1; /* 6000 */
+		speed[9] = 1; /* 5800 */
 	}	 
     }
     private void radioButtonA_CheckedChanged (object sender, EventArgs e)
