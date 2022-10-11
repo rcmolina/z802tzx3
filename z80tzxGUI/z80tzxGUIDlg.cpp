@@ -71,8 +71,8 @@ BOOL CZ80tzxGUIDlg::OnInitDialog()
 
 	
 	// TODO: Add extra initialization here
-	CheckRadioButton(IDC_RADIO2, IDC_RADIO12, IDC_RADIO9); 
-	speed[7]=1;
+	CheckRadioButton(IDC_RADIO2, IDC_RADIO12, IDC_RADIO12); 
+	speed[10]=1;   //Default speed 5800
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
