@@ -65,7 +65,7 @@ byte snap_bin[256000];
 byte WorkBuffer[65535];
 
 bool verbose = false;
-int speed_value = 7;   //Default 5100
+int speed_value = 9;   //Default 4100
 int load_colour = -1;
 bool external = false;
 char external_filename[512];
@@ -412,58 +412,58 @@ void create_out_filename()
 			out_filename[last+4]='0';	  	   
 			break;
 		
-		case 3:		//3230
-			out_filename[last+1]='3';
-			out_filename[last+2]='2';
-			out_filename[last+3]='3';
-			out_filename[last+4]='0';	  
-			break;
-		
-		case 4:		//3500
+		case 3:		//3500
 			out_filename[last+1]='3';
 			out_filename[last+2]='5';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
 		
-		case 5:		//4100
-			out_filename[last+1]='4';
-			out_filename[last+2]='1';
+		case 4:		//3600
+			out_filename[last+1]='3';
+			out_filename[last+2]='6';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
 		
-		case 6:		//4500
-			out_filename[last+1]='4';
-			out_filename[last+2]='5';
+		case 5:		//3700
+			out_filename[last+1]='3';
+			out_filename[last+2]='7';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
 		
-		case 7:		//5000
-			out_filename[last+1]='5';
+		case 6:		//3800
+			out_filename[last+1]='3';
+			out_filename[last+2]='8';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 7:		//3900
+			out_filename[last+1]='3';
+			out_filename[last+2]='9';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 8:		//4000
+			out_filename[last+1]='4';
 			out_filename[last+2]='0';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
 		
-		case 8:		//5100
-			out_filename[last+1]='5';
+		case 9:		//4100
+			out_filename[last+1]='4';
 			out_filename[last+2]='1';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
 		
-		case 9:		//5500
-			out_filename[last+1]='5';
+		case 10:	//4500
+			out_filename[last+1]='4';
 			out_filename[last+2]='5';
-			out_filename[last+3]='0';
-			out_filename[last+4]='0';	  
-			break;
-		
-		case 10:	//5800
-			out_filename[last+1]='5';
-			out_filename[last+2]='8';
 			out_filename[last+3]='0';
 			out_filename[last+4]='0';	  
 			break;
@@ -607,8 +607,8 @@ void print_usage(bool title)
 	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=1364 1=2250  2= 3000 3=3500  4=3600  5=3700     \n");
-	printf("                               6=3800 (7)=3900 8=4000  9=4100 10=4500 bps)\n");	      
+	printf(" -s n Loading Speed (n: 0=1364 1=2250 2=3000 3=3500  4= 3600  5=3700     \n");
+	printf("                               6=3800 7=3900 8=4000 (9)=4100 10=4500 bps)\n");	     
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
