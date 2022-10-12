@@ -355,112 +355,128 @@ void init_snap(void)
 
 void create_out_filename()
 {	
-	strcpy(out_filename, filename);
-	int last = strlen(out_filename)-1;
-	while (out_filename[last] != '.' && last > 0)
-	{
-		last--;
+	if (strlen(out_filename) != 0) {
+	
+		int last = strlen(out_filename)-1;
+		while (out_filename[last] != '.' && last > 0)
+		{
+			last--;
+		}
+		if (last == 0)
+		{
+			// No extension ???
+			return;
+		}
+	
+		out_filename[last+1]='t';
+		out_filename[last+2]='z';
+		out_filename[last+3]='x';
+		out_filename[last+4]=0;
+	 
+	}else {
+	
+		strcpy(out_filename, filename); // se copia el del snapshot	   
+		int last = strlen(out_filename)-1;
+		while (out_filename[last] != '.' && last > 0)
+		{
+			last--;
+		}
+		if (last == 0)
+		{
+			// No extension ???
+			return;
+		}
+	
+		out_filename[last]='_';
+		
+		switch (speed_value)
+		{
+		case 0:		//1364
+			out_filename[last+1]='1';
+			out_filename[last+2]='3';
+			out_filename[last+3]='6';
+			out_filename[last+4]='4';	  
+			break;
+		
+		case 1:		//2250
+			out_filename[last+1]='2';
+			out_filename[last+2]='2';
+			out_filename[last+3]='5';
+			out_filename[last+4]='0';	  	   	   
+			break;
+		
+		case 2:		//3000
+			out_filename[last+1]='3';
+			out_filename[last+2]='0';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  	   
+			break;
+		
+		case 3:		//3230
+			out_filename[last+1]='3';
+			out_filename[last+2]='2';
+			out_filename[last+3]='3';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 4:		//3500
+			out_filename[last+1]='3';
+			out_filename[last+2]='5';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 5:		//4100
+			out_filename[last+1]='4';
+			out_filename[last+2]='1';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 6:		//4500
+			out_filename[last+1]='4';
+			out_filename[last+2]='5';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 7:		//5000
+			out_filename[last+1]='5';
+			out_filename[last+2]='0';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 8:		//5100
+			out_filename[last+1]='5';
+			out_filename[last+2]='1';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 9:		//5500
+			out_filename[last+1]='5';
+			out_filename[last+2]='5';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		
+		case 10:	//5800
+			out_filename[last+1]='5';
+			out_filename[last+2]='8';
+			out_filename[last+3]='0';
+			out_filename[last+4]='0';	  
+			break;
+		}
+		out_filename[last+5]='b';	
+		out_filename[last+6]='.';
+		out_filename[last+7]='t';
+		out_filename[last+8]='z';	
+		out_filename[last+9]='x';
+		out_filename[last+10]=0;
 	}
-	if (last == 0)
-	{
-		// No extension ???
-		return;
-	}
-/*
-	out_filename[last+1]='t';
-	out_filename[last+2]='z';
-	out_filename[last+3]='x';
-	out_filename[last+4]=0;
-*/
-	out_filename[last]='_';
-	
-	switch (speed_value)
-	{
-	case 0:		//1364
-		out_filename[last+1]='1';
-		out_filename[last+2]='3';
-		out_filename[last+3]='6';
-		out_filename[last+4]='4';	  
-		break;
-	
-	case 1:		//2250
-		out_filename[last+1]='2';
-		out_filename[last+2]='2';
-		out_filename[last+3]='5';
-		out_filename[last+4]='0';	  	   	   
-		break;
-	
-	case 2:		//3000
-		out_filename[last+1]='3';
-		out_filename[last+2]='0';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  	   
-		break;
-	
-	case 3:		//3500
-		out_filename[last+1]='3';
-		out_filename[last+2]='5';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 4:		//4100
-		out_filename[last+1]='3';
-		out_filename[last+2]='6';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 5:		//4500
-		out_filename[last+1]='3';
-		out_filename[last+2]='7';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 6:		//5000
-		out_filename[last+1]='3';
-		out_filename[last+2]='8';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 7:		//5100
-		out_filename[last+1]='3';
-		out_filename[last+2]='9';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 8:		//5500
-		out_filename[last+1]='4';
-		out_filename[last+2]='0';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 9:		//5800
-		out_filename[last+1]='4';
-		out_filename[last+2]='1';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	
-	case 10:	//6000
-		out_filename[last+1]='4';
-		out_filename[last+2]='5';
-		out_filename[last+3]='0';
-		out_filename[last+4]='0';	  
-		break;
-	}
-	out_filename[last+5]='b';	
-	out_filename[last+6]='.';
-	out_filename[last+7]='t';
-	out_filename[last+8]='z';	
-	out_filename[last+9]='x';
-	out_filename[last+10]=0;
-
 }
+
 
 void clear_name(char name[])
 {

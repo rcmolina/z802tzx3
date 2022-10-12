@@ -65,7 +65,7 @@ byte snap_bin[256000];
 byte WorkBuffer[65535];
 
 bool verbose = false;
-int speed_value = 3;   //Default 5100
+int speed_value = 5;   //Default 5800
 int load_colour = -1;
 bool external = false;
 char external_filename[512];
@@ -501,7 +501,7 @@ void print_usage(bool title)
 	printf(" Sz802tzx Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
-	printf(" -s n Loading Speed (n: 0=3230 1=3500 2=4500 (3)=5100 4=5500 5=5800 6=6000 bps)\n");
+	printf(" -s n Loading Speed (n: 0=3230 1=3500 2=4500 3=5100 4=5500 (5)=5800 6=6000 bps)\n");
 	printf(" -b n Border (0=Black 1=Blue 2=Red 3=Magenta 4=Green 5=Cyan 6=Yellow 7=White)\n");
 	printf(" -r   Use Bright Colour when filling in the last attribute line\n");
 	printf(" -$ f Use External Loading Screen in file f (.scr 6912 bytes long file)\n");
@@ -1048,7 +1048,14 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*              279 + 32*3 + 43*7 = 676 (636 needed), so a = 3, b = 7, bd = 9                                                    */
 /*              PilotMin = 1453 + 16a = 1453 + 16*3 = 1501 T                                                                      */
 /*              PilotMax = 3130 + 16a = 3130 + 16*3 = 3178 T =>  T=1740                                                           */
-/*              Sync0 = 840 + 16a = 840 + 16*4 = 904 T =>  480 T                                                                  */
+/*              Sync0 = 840 + 16a = 840 + 16*3 = 904 T =>  480 T                                                                  */
+/*  5800 bps => 606 T => hb0 = 202 T, hb1 = 404 T, avg = 318 (636) T                                                              */
+/*              279 + 32a + 43b = 606 => 32x + 86x = 327 => 118x = 327 => x = 2.77                                                  */
+/*              279 + 32*3 + 43*5 = 590 (606 needed), so a = 3, b = 5, bd = 16                                                    */
+/*              PilotMin = 1453 + 16a = 1453 + 16*3 = 1501 T                                                                      */
+/*              PilotMax = 3130 + 16a = 3130 + 16*3 = 3178 T =>  T=1740                                                           */
+/*              Sync0 = 840 + 16a = 840 + 16*3 = 904 T =>  480 T                                                                  */
+
 /*  6000 bps => 584 T => hb0 = 195 T, hb1 = 390 T, avg = 293 (585) T                                                              */
 /*              279 + 32a + 43b = 585 => 32x + 86x = 306 => 118x = 306 => x = 2.6                                                 */
 /*              279 + 32*3 + 43*5 = 590 (585 needed), so a = 3, b = 5, bd = 7                                                     */
@@ -1077,8 +1084,8 @@ static struct TurboLoadVars
 //                   { 0x80 +  10,  3, 1740, 480, 233 },  /*  5000 bps */
                    { 0x80 +  10,  3, 1740, 480, 229 },  /*  5100 bps */	   	   	   	      
                    { 0x80 +  7,  3, 1740, 465, 212 },  /*  5500 bps */	    		      	   	   	   	   	      	  	     
-                   { 0x80 +  7,  3, 1700, 450, 200 },  /*  5800 bps */ 
-                   { 0x80 +  6,  2, 1650, 450, 195 }};  /*  6000 bps */ // 197 works with Spectaculator 	 	    
+                   { 0x80 +  7,  3, 1680, 460, 200 },   /*  5800 bps */ 
+                   { 0x80 +  6,  2, 1650, 450, 197 }};  /*  6000 bps */ // 197 works with Spectaculator 	 	    
 
 
 /*
@@ -1255,7 +1262,13 @@ byte tzx_header_data[6] = { 0x10, 0x00, 0x00, 0xff, 0xff, 0xff };
 byte tzx_header[tzx_header_size] =
 //	  	  	  	  	  	  	  {	  0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 0x57, 0x03, 0xAE, 0x06, 0xC5, 0x09, 0x08, 0x64, 0x00, 0x13, 0x00, 0x00,
 // @Spirax Length of ZERO bit pulse = 600 , Length of ONE bit pulse = 1400 
-							{	0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 0x58, 0x02, 0x78, 0x05, 0xC5, 0x09, 0x08, 0x64, 0x00, 0x13, 0x00, 0x00,
+							{	0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 
+							//	  0x57, 0x03, // ZERO bit pulse 855
+							//	  0xAE, 0x06, // ONE bit pulse 1710								
+								0x58, 0x02, // ZERO bit pulse 600	 	 	 	 	 
+								0x78, 0x05, // ONE bit pulse 1400  	   	   	   	   	   
+								0xC5, 0x09, 0x08, 0x64, 0x00, 0x13, 0x00, 0x00,
+								
 								0x00, 0x00,			// Basic
 								0x11, 0x05, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,		// Filename
 								0xff, 0xff,		// Length of Data block
@@ -1264,8 +1277,11 @@ byte tzx_header[tzx_header_size] =
 								0xff};			// Checksum
 
 //byte tzx_header_data[20] = { 0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 0x57, 0x03, 0xAE, 0x06, 0xC5, 0x09, 0x08, 0x64, 0x00, 0xFF, 0xFF, 0xFF, 0xFF };
-// @Spirax Length of ZERO bit pulse = 600 , Length of ONE bit pulse = 1400 
-byte tzx_header_data[20] = { 0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 0x58, 0x02, 0x78, 0x05, 0xC5, 0x09, 0x08, 0x64, 0x00, 0xFF, 0xFF, 0xFF, 0xFF };
+// @Spirax Length of ZERO bit pulse = 600 , Length of ONE bit pulse = 1500 
+byte tzx_header_data[20] = { 0x11, 0x78, 0x08, 0x9B, 0x02, 0xDF, 0x02, 
+						//	   0x57, 0x03, 0xAE, 0x06, // ZERO bit pulse 855 && ONE bit pulse 1710	 
+							 0x58, 0x02, 0x78, 0x05, // ZERO bit pulse 800 && ONE bit pulse 1500   	   	   	   	   
+							 0xC5, 0x09, 0x08, 0x64, 0x00, 0xFF, 0xFF, 0xFF, 0xFF };
 
 struct tzx_turbo_head_str
 {
