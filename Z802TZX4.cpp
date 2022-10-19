@@ -55,6 +55,7 @@ char out_filename[512];
 char loader_name[256] = "\0";
 
 char game_name[256]="                                ";
+char game_name2[256]="                                ";
 char info1[256]="                                ";
 char info2[256]="                                ";
 
@@ -581,7 +582,7 @@ void print_usage(bool title)
 		printf(  "\n  ->by Tom-Cat<-\n\n");
 	}
 	printf("Usage:\n\n");
-	printf(" Z802TZX3 Filename.[z80|sna] [Options]\n\n");
+	printf(" Z802TZX4 Filename.[z80|sna] [Options]\n\n");
 	printf(" Options:\n");
 	printf(" -v   Verbose Output (Info on conversion)\n");
 	printf(" -s n Loading Speed (n: 0=1364 1=2250 2=3000 3=3500  4= 3600  5=3700     \n");
@@ -660,13 +661,36 @@ bool parse_args(int argc, char * argv[])
 					break;
 					// Game Name (When Loader is loaded)
 				case 'g':
+/*
+					i++;									
+					if (argv[i][2] == '2')
+					{
+						clear_name(game_name2);
+						sscanf(argv[i], "%[^\0]\0", game_name2);
+						game_name2[strlen(game_name2)]=' ';
+						game_name2[32] = 0;	 // Can't be bigger than 32 chars !
+						//change_copyright(game_name);
+						center_name(game_name2);					
+					}
+					else
+					{
+						clear_name(game_name);
+						sscanf(argv[i], "%[^\0]\0", game_name);
+						game_name[strlen(game_name)]=' ';
+						game_name[32] = 0;	// Can't be bigger than 32 chars !
+						change_copyright(game_name);
+						center_name(game_name);	   	   	   	   	
+
+					}
+*/	  	  	  	  	  
 					i++;
 					clear_name(game_name);
 					sscanf(argv[i], "%[^\0]\0", game_name);
 					game_name[strlen(game_name)]=' ';
 					game_name[32] = 0;	// Can't be bigger than 32 chars !
 					change_copyright(game_name);
-					center_name(game_name);
+					center_name(game_name);	 
+					  	  	  	  	      	  	  	  	  	  	  	  	  	  	    	  	  	  
 					break;
 					// Loader Name (Loading: Name)
 				case 'l':
@@ -1062,15 +1086,38 @@ bool load_snap(void)
 	return true;
 }
 
-#define LOADERPREPIECE  (224+1)-87+12-1+41+41                                                  /* Length of the BASIC part before the loader code */
+//#define LOADERPREPIECE  (224+1)-87+12-1+41+41                                                  /* Length of the BASIC part before the loader code */
+#define LOADERPREPIECE  (224+1)-87+12-1+41+41+4                                                 /* Length of the BASIC part before the loader code */
 static byte SpectrumBASICData[LOADERPREPIECE] = {
 
-	/* 0 {INK 255}{PAPER 255}BORDER PI-PI : PAPER PI-PI : INK PI-PI : CLS
-		PRINT "{AT 6,0}{INK 5}
-		{AT 12,9}{INK 6}{PAPER 2}{FLASH 1} NOW LOADING {AT 0,0}{FLASH 0}{PAPER 0}{INK 0}":
-		RANDOMIZE USR (PEEK VAL "23627"+VAL "256"*PEEK VAL "23628") */
+/*
+	0[ink FF][paper FF] BORDER PI-PI: PAPER PI-PI: INK PI-PI: CLS : 
+	PRINT "[at 6,0][ink 5]""                                "            
+	[at 11,10][ink 6][paper 2][flash 1] IS LOADING [at 0,0][flash 0][paper 0][ink 0]"
+	:PRINT "[at 13,0][ink 4]""                                " 
+	:PRINT "[at 15,0][ink 4]""                                " 
+	:RANDOMIZE USR (PEEK VAL "23627"+VAL "256"*PEEK VAL "23628")
+
 	"\x00\x00\xFF\xFF\x10\xFF\x11\xFF\xE7\xA7\x2D\xA7\x3A\xDA\xA7\x2D\xA7\x3A\xD9\xA7\x2D\xA7\x3A\xFB\x3A"
 	"\xF5\"\x16\x06\x00\x10\x05""                                "
+	"\x16\x0B\x0A\x10\x06\x11\x02\x12\x01 IS LOADING \x16\x00\x00\x12\x00\x11\x00\x10\x00\""
+	"\x3A\xF5\"\x16\x13\x00\x10\x04""                                ""\""
+	"\x3A\xF5\"\x16\x15\x00\x10\x04""                                ""\""
+	"\x3A\xF9\xC0(\xBE\xB0\"23627\"+\xB0\"256\"*\xBE\xB0\"23628\")\x0D"
+*/
+/*
+	0[ink FF][paper FF] BORDER PI-PI: PAPER PI-PI: INK PI-PI: CLS : 
+	PRINT "[at 5,0][ink 2][paper 7][bright 1]""                                "
+	PRINT "[at 6,0][ink 5]""                                "	         
+	[at 11,10][ink 6][paper 2][flash 1] IS LOADING [at 0,0][flash 0][paper 0][ink 0]"
+	:PRINT "[at 13,0][ink 4]"                                " 
+	:PRINT "[at 15,0][ink 4]"                                " 
+	:RANDOMIZE USR (PEEK VAL "23627"+VAL "256"*PEEK VAL "23628")
+*/
+
+	"\x00\x00\xFF\xFF\x10\xFF\x11\xFF\xE7\xA7\x2D\xA7\x3A\xDA\xA7\x2D\xA7\x3A\xD9\xA7\x2D\xA7\x3A\xFB\x3A"
+	"\xF5\"\x16\x05\x00\x10\x02\x11\x07\x13\x01""                                "
+//	  "\xF5\"\x16\x06\x00\x10\x05""                                "	
 	"\x16\x0B\x0A\x10\x06\x11\x02\x12\x01 IS LOADING \x16\x00\x00\x12\x00\x11\x00\x10\x00\""
 	"\x3A\xF5\"\x16\x13\x00\x10\x04""                                ""\""
 	"\x3A\xF5\"\x16\x15\x00\x10\x04""                                ""\""
@@ -1587,9 +1634,15 @@ void create_main_data()
 	add_data(tzx_header_data, 14+6);
 
 	// Copy the Game Name here and the info lines
-	memcpy(SpectrumBASICData+32, game_name, 32);
-	memcpy(SpectrumBASICData+103, info1, 32);
-	memcpy(SpectrumBASICData+144, info2, 32);
+	//memcpy(SpectrumBASICData+32, game_name, 32);
+	memcpy(SpectrumBASICData+36, game_name, 32);
+//	  memcpy(SpectrumBASICData+73, game_name, 32);	  
+	
+	//memcpy(SpectrumBASICData+103, info1, 32);
+	//memcpy(SpectrumBASICData+144, info2, 32);
+	memcpy(SpectrumBASICData+107, info1, 32);
+	memcpy(SpectrumBASICData+148, info2, 32);	 
+	
 
 	add_data(SpectrumBASICData, LOADERPREPIECE-1);
 
