@@ -661,28 +661,32 @@ bool parse_args(int argc, char * argv[])
 					break;
 					// Game Name (When Loader is loaded)
 				case 'g':
-/*
-					i++;									
 					if (argv[i][2] == '2')
 					{
+						i++;
+						//printf("\n2\n");
 						clear_name(game_name2);
 						sscanf(argv[i], "%[^\0]\0", game_name2);
+					//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
 						game_name2[strlen(game_name2)]=' ';
 						game_name2[32] = 0;	 // Can't be bigger than 32 chars !
-						//change_copyright(game_name);
-						center_name(game_name2);					
+						change_copyright(game_name2);
+						center_name(game_name2);	  	    				
 					}
 					else
 					{
+						i++;
+						//printf("\n1\n");
 						clear_name(game_name);
 						sscanf(argv[i], "%[^\0]\0", game_name);
+					//	  printf("\n%s\n",game_name);
 						game_name[strlen(game_name)]=' ';
 						game_name[32] = 0;	// Can't be bigger than 32 chars !
 						change_copyright(game_name);
-						center_name(game_name);	   	   	   	   	
-
+						center_name(game_name);	 	 	   	   	   
 					}
-*/	  	  	  	  	  
+
+/*	  	  	  	  	  	    								
 					i++;
 					clear_name(game_name);
 					sscanf(argv[i], "%[^\0]\0", game_name);
@@ -690,7 +694,7 @@ bool parse_args(int argc, char * argv[])
 					game_name[32] = 0;	// Can't be bigger than 32 chars !
 					change_copyright(game_name);
 					center_name(game_name);	 
-					  	  	  	  	      	  	  	  	  	  	  	  	  	  	    	  	  	  
+*/	  	  	  	  	    				    										  	    		
 					break;
 					// Loader Name (Loading: Name)
 				case 'l':
@@ -1087,7 +1091,7 @@ bool load_snap(void)
 }
 
 //#define LOADERPREPIECE  (224+1)-87+12-1+41+41                                                  /* Length of the BASIC part before the loader code */
-#define LOADERPREPIECE  (224+1)-87+12-1+41+41+4                                                 /* Length of the BASIC part before the loader code */
+#define LOADERPREPIECE  (224+1)-87+12-1+41+41+4+8+41                                                 /* Length of the BASIC part before the loader code */
 static byte SpectrumBASICData[LOADERPREPIECE] = {
 
 /*
@@ -1108,19 +1112,19 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 /*
 	0[ink FF][paper FF] BORDER PI-PI: PAPER PI-PI: INK PI-PI: CLS : 
 	PRINT "[at 5,0][ink 2][paper 7][bright 1]""                                "
-	PRINT "[at 6,0][ink 5]""                                "	         
+	[at 6,0][ink 5][paper 7][bright 1]""                                "	            
 	[at 11,10][ink 6][paper 2][flash 1] IS LOADING [at 0,0][flash 0][paper 0][ink 0]"
-	:PRINT "[at 13,0][ink 4]"                                " 
-	:PRINT "[at 15,0][ink 4]"                                " 
+	:PRINT "[at 13,0][ink 4][paper 0][bright 1]"                                " 
+	:PRINT "[at 15,0][ink 4][paper 0][bright 1]"                                " 
 	:RANDOMIZE USR (PEEK VAL "23627"+VAL "256"*PEEK VAL "23628")
 */
 
 	"\x00\x00\xFF\xFF\x10\xFF\x11\xFF\xE7\xA7\x2D\xA7\x3A\xDA\xA7\x2D\xA7\x3A\xD9\xA7\x2D\xA7\x3A\xFB\x3A"
 	"\xF5\"\x16\x05\x00\x10\x02\x11\x07\x13\x01""                                "
-//	  "\xF5\"\x16\x06\x00\x10\x05""                                "	
+	"\x16\x06\x00\x10\x05\x11\x07\x13\x01""                                "	   
 	"\x16\x0B\x0A\x10\x06\x11\x02\x12\x01 IS LOADING \x16\x00\x00\x12\x00\x11\x00\x10\x00\""
-	"\x3A\xF5\"\x16\x13\x00\x10\x04""                                ""\""
-	"\x3A\xF5\"\x16\x15\x00\x10\x04""                                ""\""
+	"\x3A\xF5\"\x16\x13\x00\x10\x04\x11\x00\x13\x01""                                ""\""
+	"\x3A\xF5\"\x16\x15\x00\x10\x04\x11\x00\x13\x01""                                ""\""
 	"\x3A\xF9\xC0(\xBE\xB0\"23627\"+\xB0\"256\"*\xBE\xB0\"23628\")\x0D"
 
 	/* Variables area - the 768 byte loader block is	appended after this piece */
@@ -1636,12 +1640,12 @@ void create_main_data()
 	// Copy the Game Name here and the info lines
 	//memcpy(SpectrumBASICData+32, game_name, 32);
 	memcpy(SpectrumBASICData+36, game_name, 32);
-//	  memcpy(SpectrumBASICData+73, game_name, 32);	  
+	memcpy(SpectrumBASICData+36+41, game_name2, 32);	
 	
 	//memcpy(SpectrumBASICData+103, info1, 32);
 	//memcpy(SpectrumBASICData+144, info2, 32);
-	memcpy(SpectrumBASICData+107, info1, 32);
-	memcpy(SpectrumBASICData+148, info2, 32);	 
+	memcpy(SpectrumBASICData+111+41, info1, 32);
+	memcpy(SpectrumBASICData+156+41, info2, 32);	
 	
 
 	add_data(SpectrumBASICData, LOADERPREPIECE-1);
