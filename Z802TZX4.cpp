@@ -55,9 +55,24 @@ char out_filename[512];
 char loader_name[256] = "\0";
 
 char game_name[256]="                                ";
+char game_name_ink=5;
+char game_name_paper=0;
+char game_name_bright=0;
+
 char game_name2[256]="                                ";
+char game_name2_ink=5;
+char game_name2_paper=0;
+char game_name2_bright=0;
+
 char info1[256]="                                ";
+char info1_ink=4;
+char info1_paper=0;
+char info1_bright=0;
+
 char info2[256]="                                ";
+char info2_ink=6;
+char info2_paper=0;
+char info2_bright=1;
 
 int snap_type;				// -1 = Not recognised
 							//  0 = Z80, 1 = SNA
@@ -643,47 +658,117 @@ bool parse_args(int argc, char * argv[])
 					break;
 
 				case 'i':
-					if (argv[i][2] == '1')
+					if (argv[i][2] == '2')
 					{
-						inf=info1;
+						if (argv[i][3] == 'i') {
+							i++;
+							info2_ink=argv[i][0]-48;
+						}
+						else if (argv[i][3] == 'p') {					
+							i++;
+							info2_paper=argv[i][0]-48;	
+						} 
+						else if (argv[i][3] == 'b') {					
+							i++;
+							info2_bright=argv[i][0]-48;  
+						}
+						else { 	  	   	   	   	   	   	   	   	   	   	   
+							inf=info2;
+							i++;
+							sscanf(argv[i], "%[^\0]\0", inf);
+							inf[strlen(inf)]=' ';
+							inf[32] = 0;	// Can't be bigger than 32 chars !
+							change_copyright(inf);
+							center_name(inf);	   	   	   	   	   	   	   
+						}
 					}
 					else
 					{
-						inf=info2;
+						if (argv[i][3] == 'i') {
+							i++;
+							info1_ink=argv[i][0]-48;
+						}
+						else if (argv[i][3] == 'p') {					
+							i++;
+							info1_paper=argv[i][0]-48;	
+						} 
+						else if (argv[i][3] == 'b') {					
+							i++;
+							info1_bright=argv[i][0]-48;  
+						}
+						else { 	  	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   
+							inf=info1;
+							i++;
+							sscanf(argv[i], "%[^\0]\0", inf);
+							inf[strlen(inf)]=' ';
+							inf[32] = 0;	// Can't be bigger than 32 chars !
+							change_copyright(inf);
+							center_name(inf);	   	   	   	   	   	   	   
+						}
 					}
+/*
 					i++;
 					sscanf(argv[i], "%[^\0]\0", inf);
 					inf[strlen(inf)]=' ';
 					inf[32] = 0;	// Can't be bigger than 32 chars !
 					change_copyright(inf);
-					center_name(inf);
-
+					center_name(inf);	   	   	   	   	   	
+*/
 					break;
 					// Game Name (When Loader is loaded)
 				case 'g':
-					if (argv[i][2] == '2')
-					{
-						i++;
-						//printf("\n2\n");
-						clear_name(game_name2);
-						sscanf(argv[i], "%[^\0]\0", game_name2);
-					//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
-						game_name2[strlen(game_name2)]=' ';
-						game_name2[32] = 0;	 // Can't be bigger than 32 chars !
-						change_copyright(game_name2);
-						center_name(game_name2);	  	    				
+
+					if (argv[i][2] == '2') {
+					
+							if (argv[i][3] == 'i') {
+								i++;
+								game_name2_ink=argv[i][0]-48;
+							}
+							else if (argv[i][3] == 'p') {					
+								i++;
+								game_name2_paper=argv[i][0]-48;	
+							} 
+							else if (argv[i][3] == 'b') {					
+								i++;
+								game_name2_bright=argv[i][0]-48;  
+							}
+							else { 	    			   	   	   	   	   	   
+								i++;
+								//printf("\n2\n");
+								clear_name(game_name2);
+								sscanf(argv[i], "%[^\0]\0", game_name2);
+							//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
+								game_name2[strlen(game_name2)]=' ';
+								game_name2[32] = 0;	 // Can't be bigger than 32 chars !
+								change_copyright(game_name2);
+								center_name(game_name2);	 	 	 		 	 	 	 	 	 
+							}	 	   	   	   	   	   
 					}
-					else
-					{
-						i++;
-						//printf("\n1\n");
-						clear_name(game_name);
-						sscanf(argv[i], "%[^\0]\0", game_name);
-					//	  printf("\n%s\n",game_name);
-						game_name[strlen(game_name)]=' ';
-						game_name[32] = 0;	// Can't be bigger than 32 chars !
-						change_copyright(game_name);
-						center_name(game_name);	 	 	   	   	   
+	 	 	 	 	 
+					else {
+							if (argv[i][3] == 'i') {
+								i++;
+								game_name_ink= argv[i][0]-48;
+							}
+							else if (argv[i][3] == 'p') {					
+								i++;
+								game_name_paper= argv[i][0]-48;	   
+							} 
+							else if (argv[i][3] == 'b') {					
+								i++;
+								game_name_bright= argv[i][0]-48;	
+							}
+							else { 	    			   	   	   	   	   	   	      	  	  	  	  	  	  	  	  	  
+								i++;
+								//printf("\n1\n");
+								clear_name(game_name);
+								sscanf(argv[i], "%[^\0]\0", game_name);
+							//	  printf("\n%s\n",game_name);
+								game_name[strlen(game_name)]=' ';
+								game_name[32] = 0;	// Can't be bigger than 32 chars !
+								change_copyright(game_name);
+								center_name(game_name);
+							}	   	     	 	 
 					}
 
 /*	  	  	  	  	  	    								
@@ -1111,20 +1196,20 @@ static byte SpectrumBASICData[LOADERPREPIECE] = {
 */
 /*
 	0[ink FF][paper FF] BORDER PI-PI: PAPER PI-PI: INK PI-PI: CLS : 
-	PRINT "[at 5,0][ink 2][paper 7][bright 1]""                                "
-	[at 6,0][ink 5][paper 7][bright 1]""                                "	            
+	PRINT "[at 5,0][ink 5][paper 0][bright 0]""                                "
+	[at 6,0][ink 5][paper 0][bright 0]""                                "	            
 	[at 11,10][ink 6][paper 2][flash 1] IS LOADING [at 0,0][flash 0][paper 0][ink 0]"
-	:PRINT "[at 13,0][ink 4][paper 0][bright 1]"                                " 
-	:PRINT "[at 15,0][ink 4][paper 0][bright 1]"                                " 
+	:PRINT "[at 13,0][ink 4][paper 0][bright 0]"                                " 
+	:PRINT "[at 15,0][ink 6][paper 0][bright 1]"                                " 
 	:RANDOMIZE USR (PEEK VAL "23627"+VAL "256"*PEEK VAL "23628")
 */
 
 	"\x00\x00\xFF\xFF\x10\xFF\x11\xFF\xE7\xA7\x2D\xA7\x3A\xDA\xA7\x2D\xA7\x3A\xD9\xA7\x2D\xA7\x3A\xFB\x3A"
-	"\xF5\"\x16\x05\x00\x10\x02\x11\x07\x13\x01""                                "
-	"\x16\x06\x00\x10\x05\x11\x07\x13\x01""                                "	   
+	"\xF5\"\x16\x05\x00\x10\x05\x11\x00\x13\x00""                                "
+	"\x16\x06\x00\x10\x05\x11\x00\x13\x00""                                "	   
 	"\x16\x0B\x0A\x10\x06\x11\x02\x12\x01 IS LOADING \x16\x00\x00\x12\x00\x11\x00\x10\x00\""
-	"\x3A\xF5\"\x16\x13\x00\x10\x04\x11\x00\x13\x01""                                ""\""
-	"\x3A\xF5\"\x16\x15\x00\x10\x04\x11\x00\x13\x01""                                ""\""
+	"\x3A\xF5\"\x16\x13\x00\x10\x04\x11\x00\x13\x00""                                ""\""
+	"\x3A\xF5\"\x16\x15\x00\x10\x06\x11\x00\x13\x01""                                ""\""
 	"\x3A\xF9\xC0(\xBE\xB0\"23627\"+\xB0\"256\"*\xBE\xB0\"23628\")\x0D"
 
 	/* Variables area - the 768 byte loader block is	appended after this piece */
@@ -1639,12 +1724,32 @@ void create_main_data()
 
 	// Copy the Game Name here and the info lines
 	//memcpy(SpectrumBASICData+32, game_name, 32);
+
+
+	SpectrumBASICData[36-5] = game_name_ink;
+	SpectrumBASICData[36-3] = game_name_paper;
+	SpectrumBASICData[36-1] = game_name_bright;	      
 	memcpy(SpectrumBASICData+36, game_name, 32);
+
+
+	SpectrumBASICData[36+41-5]= game_name2_ink;
+	SpectrumBASICData[36+41-3]= game_name2_paper;
+	SpectrumBASICData[36+41-1]= game_name2_bright;	  
 	memcpy(SpectrumBASICData+36+41, game_name2, 32);	
 	
 	//memcpy(SpectrumBASICData+103, info1, 32);
 	//memcpy(SpectrumBASICData+144, info2, 32);
+	
+
+	SpectrumBASICData[111+41-5]= info1_ink;
+	SpectrumBASICData[111+41-3]= info1_paper;
+	SpectrumBASICData[111+41-1]= info1_bright;	  	  	  
 	memcpy(SpectrumBASICData+111+41, info1, 32);
+	
+
+	SpectrumBASICData[156+41-5]= info2_ink;
+	SpectrumBASICData[156+41-3]= info2_paper;
+	SpectrumBASICData[156+41-1]= info2_bright;	  	  	  
 	memcpy(SpectrumBASICData+156+41, info2, 32);	
 	
 
