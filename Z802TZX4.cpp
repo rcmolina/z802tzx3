@@ -645,6 +645,8 @@ bool parse_args(int argc, char * argv[])
 			create_loader_name();
 			create_game_name();
 			center_name(game_name);
+			strcpy(game_name2, game_name);
+			clear_name(game_name);
 		}
 		else
 		{
@@ -658,32 +660,7 @@ bool parse_args(int argc, char * argv[])
 					break;
 
 				case 'i':
-					if (argv[i][2] == '2')
-					{
-						if (argv[i][3] == 'i') {
-							i++;
-							info2_ink=argv[i][0]-48;
-						}
-						else if (argv[i][3] == 'p') {					
-							i++;
-							info2_paper=argv[i][0]-48;	
-						} 
-						else if (argv[i][3] == 'b') {					
-							i++;
-							info2_bright=argv[i][0]-48;  
-						}
-						else { 	  	   	   	   	   	   	   	   	   	   	   
-							inf=info2;
-							i++;
-							sscanf(argv[i], "%[^\0]\0", inf);
-							inf[strlen(inf)]=' ';
-							inf[32] = 0;	// Can't be bigger than 32 chars !
-							change_copyright(inf);
-							center_name(inf);	   	   	   	   	   	   	   
-						}
-					}
-					else
-					{
+					if (argv[i][2] == '1') {
 						if (argv[i][3] == 'i') {
 							i++;
 							info1_ink=argv[i][0]-48;
@@ -696,7 +673,7 @@ bool parse_args(int argc, char * argv[])
 							i++;
 							info1_bright=argv[i][0]-48;  
 						}
-						else { 	  	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   
+						else { 	  	   	   	   	   	   	   	   	   	   	   
 							inf=info1;
 							i++;
 							sscanf(argv[i], "%[^\0]\0", inf);
@@ -705,6 +682,31 @@ bool parse_args(int argc, char * argv[])
 							change_copyright(inf);
 							center_name(inf);	   	   	   	   	   	   	   
 						}
+					}
+					else if (argv[i][2] == '2') {
+						
+							if (argv[i][3] == 'i') {
+								i++;
+								info2_ink=argv[i][0]-48;
+							}
+							else if (argv[i][3] == 'p') {					
+								i++;
+								info2_paper=argv[i][0]-48;	
+							} 
+							else if (argv[i][3] == 'b') {					
+								i++;
+								info2_bright=argv[i][0]-48;  
+							}
+							else { 	  	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   	   
+								inf=info2;
+								i++;
+								sscanf(argv[i], "%[^\0]\0", inf);
+								inf[strlen(inf)]=' ';
+								inf[32] = 0;	// Can't be bigger than 32 chars !
+								change_copyright(inf);
+								center_name(inf);	   	   	   	   	   	   	   
+							}
+						
 					}
 /*
 					i++;
@@ -718,57 +720,86 @@ bool parse_args(int argc, char * argv[])
 					// Game Name (When Loader is loaded)
 				case 'g':
 
-					if (argv[i][2] == '2') {
+					if (argv[i][2] == '1') {
 					
 							if (argv[i][3] == 'i') {
 								i++;
-								game_name2_ink=argv[i][0]-48;
+								game_name_ink=argv[i][0]-48;
 							}
 							else if (argv[i][3] == 'p') {					
 								i++;
-								game_name2_paper=argv[i][0]-48;	
+								game_name_paper=argv[i][0]-48;	
 							} 
 							else if (argv[i][3] == 'b') {					
 								i++;
-								game_name2_bright=argv[i][0]-48;  
+								game_name_bright=argv[i][0]-48;  
 							}
 							else { 	    			   	   	   	   	   	   
 								i++;
 								//printf("\n2\n");
 								clear_name(game_name2);
-								sscanf(argv[i], "%[^\0]\0", game_name2);
-							//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
-								game_name2[strlen(game_name2)]=' ';
-								game_name2[32] = 0;	 // Can't be bigger than 32 chars !
-								change_copyright(game_name2);
-								center_name(game_name2);	 	 	 		 	 	 	 	 	 
-							}	 	   	   	   	   	   
-					}
-	 	 	 	 	 
-					else {
-							if (argv[i][3] == 'i') {
-								i++;
-								game_name_ink= argv[i][0]-48;
-							}
-							else if (argv[i][3] == 'p') {					
-								i++;
-								game_name_paper= argv[i][0]-48;	   
-							} 
-							else if (argv[i][3] == 'b') {					
-								i++;
-								game_name_bright= argv[i][0]-48;	
-							}
-							else { 	    			   	   	   	   	   	   	      	  	  	  	  	  	  	  	  	  
-								i++;
-								//printf("\n1\n");
 								clear_name(game_name);
 								sscanf(argv[i], "%[^\0]\0", game_name);
-							//	  printf("\n%s\n",game_name);
+							//	  printf("\n%s\n",game_name);						
 								game_name[strlen(game_name)]=' ';
 								game_name[32] = 0;	// Can't be bigger than 32 chars !
 								change_copyright(game_name);
-								center_name(game_name);
-							}	   	     	 	 
+								center_name(game_name);	    			    					
+							}	 	   	   	   	   	   
+					}
+	 	 	 	 	 
+					else if (argv[i][2] == '2') {
+						
+						if (argv[i][3] == 'i') {
+							i++;
+							game_name2_ink=argv[i][0]-48;
+						}
+						else if (argv[i][3] == 'p') {					
+							i++;
+							game_name2_paper=argv[i][0]-48;	
+						} 
+						else if (argv[i][3] == 'b') {					
+							i++;
+							game_name2_bright=argv[i][0]-48;  
+						}
+						else { 	    			   	   	   	   	   	   
+							i++;
+							//printf("\n2\n");
+							clear_name(game_name2);
+							sscanf(argv[i], "%[^\0]\0", game_name2);
+						//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
+							game_name2[strlen(game_name2)]=' ';
+							game_name2[32] = 0;	 // Can't be bigger than 32 chars !
+							change_copyright(game_name2);
+							center_name(game_name2);	 	 	 		 	 	 	 	 	 
+						}	 	   	   	   	   	  	   	   	   	   	   	   
+						
+					}
+					else {	  	  	  	  	  
+					
+						if (argv[i][2] == 'i') {
+							i++;
+							game_name2_ink=argv[i][0]-48;
+						}
+						else if (argv[i][2] == 'p') {					
+							i++;
+							game_name2_paper=argv[i][0]-48;	
+						} 
+						else if (argv[i][2] == 'b') {					
+							i++;
+							game_name2_bright=argv[i][0]-48;  
+						}
+						else { 	    			   	   	   	   	   	   
+							i++;
+							//printf("\n2\n");
+							clear_name(game_name2);
+							sscanf(argv[i], "%[^\0]\0", game_name2);
+						//	  printf("\n%s\n",game_name2);	 	 	 	 	 	 
+							game_name2[strlen(game_name2)]=' ';
+							game_name2[32] = 0;	 // Can't be bigger than 32 chars !
+							change_copyright(game_name2);
+							center_name(game_name2);	 	 	 		 	 	 	 	 	 
+						}	 	   	   	   	   	     	     	   	   
 					}
 
 /*	  	  	  	  	  	    								
