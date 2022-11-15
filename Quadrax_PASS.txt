@@ -1,0 +1,63 @@
+These tricks apply both czech and english versions:
+    1) Passwords location: Passwords are stored starting at address 35435 but previously every character is XORed with 44h (use f.e windows Calc or KClac in linux). Next phase password continues 5 bytes after at 35440.
+
+So for phase 2, password CLAUD is stored:
+
+Poke 35435, 7 (* ASCII(C)=67 XOR 68 *)
+Poke 35436, 8 (* ASCII(L) XOR 68 *)
+Poke 35437, 5 (* ASCII(A) XOR 68 *)
+Poke 35438, 17 (* ASCII(U) XOR 68 *)
+Poke 35439, 0 (* ASCII(D) XOR 68 *)
+
+(Rafael Molina - brand new tip!) 14400
+
+Effect	Password
+Level 02	CLAUD
+Level 03	MATUS
+Level 04	ATLAS
+Level 05	SPINA
+Level 06	DIODA
+Level 07	ISAAK
+Level 08	HLAVA
+Level 09	CONAN
+Level 10	PEKLO
+Level 11	ZYXTY
+Level 12	OBRAZ
+Level 13	KOPEC
+Level 14	QUEEN
+Level 15	POHAR
+Level 16	ULTRA
+Level 17	STROM
+Level 18	HOBIT
+Level 19	LAMPA
+Level 20	ROXET
+Level 21	MBHLR
+Level 22	DAMME
+Level 23	POZOR
+Level 24	KABAT
+Level 25	SLOVO
+Level 26	VYTAH
+Level 27	KOMIN
+Level 28	PARIS
+Level 29	KAMEN
+Level 30	ZOMRI
+Level 31	FINTA
+Level 32	RIEKA
+Level 33	WORLD
+Level 34	TEHLA
+Level 35	KAKAO
+Level 36	PRSTY
+Level 37	FERDO
+Level 38	QADER
+Level 39	MAKSY
+Level 40	KOCKA
+Level 41	COMOP
+Level 42	ABBBD
+Level 43	KMRTP
+Level 44	JHCKN
+Level 45	ZYXQW
+Level 46	ALKLA
+Level 47	AMRAK
+Level 48	RAMRA
+Level 49	JURRR
+Level 50	QWYXX o FATAL
