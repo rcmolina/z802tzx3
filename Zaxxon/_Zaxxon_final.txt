@@ -1,0 +1,133 @@
+; para grabar la posición de la cinta dentro del tzx, hay que hacerlo con el debugger (de lo contrario cada vez que cargas el .szx se pone la cinta al principio)
+; pones BP para que no avance, guardas .szx y sales. 
+; pones en pausa, cargas el szx. posicionas la cinta
+; manualmente te metes en el depurador
+; grabas otra vez el .szx
+
+5CD4  DI
+5CD5  LD HL,5D07
+5CD8  LD DE,FE00
+5CDB  LD BC,0188 ; hasta $FF88 -1
+5CDE  LDIR
+5CE0  JP FE00
+
+5D07  LD IX,7530
+5D0B  LD DE,048C
+5D0E  LD A,41
+5D10  LD (FEE5),A
+5D13  LD A,AA
+5D15  SCF
+5D16  CALL FF20
+5D19  LD A,45
+5D1B  LD (FEE5),A
+5D1E  LD A,C
+5D1F  AND 40
+5D21  LD C,A
+5D22  CALL FF06
+5D25  JR NC,5D9E
+5D27  CALL 5CE3
+5D2A  LD A,40
+5D2C  LD (FEE5),A
+5D2F  LD A,AA
+5D31  SCF
+5D32  CALL FF20
+5D35  LD (FF86),SP
+5D39  LD SP,8000
+5D3C  POP IX
+5D3E  LD DE,0245
+5D41  PUSH DE
+5D42  LD DE,0008
+5D45  LD A,40
+5D47  LD (FEE5),A
+5D4A  LD A,C
+5D4B  AND 40
+5D4D  LD C,A
+5D4E  CALL FEB8
+5D51  JR Z,5D62
+5D53  JR 5D9E
+5D55  POP IX
+5D57  PUSH DE
+5D58  LD DE,0008
+5D5B  CALL FE9E
+5D5E  JR Z,5D62
+5D60  JR 5D9E
+5D62  POP DE
+5D63  POP IX
+5D65  PUSH DE
+5D66  LD DE,0001
+5D69  CALL FE9E
+5D6C  POP DE
+5D6D  DEC DE
+5D6E  LD A,D
+5D6F  OR E
+5D70  JR NZ,5D55
+5D72  LD A,H
+5D73  CP 01
+5D75  JR NC,5D9E
+5D77  LD SP,FFFE
+5D7A  LD IX,5C00
+5D7E  LD DE,A203
+5D81  LD A,44
+5D83  LD (FEE5),A
+5D86  LD A,C
+5D87  AND 40
+5D89  LD C,A
+5D8A  CALL FF06
+5D8D  JR NC,5D9E
+5D8F  EI
+5D90  LD HL,FF68
+5D93  LD DE,FFD0
+5D96  LD BC,001E
+5D99  LDIR
+5D9B  JP FFD0
+==================================================
+FE00 arranca tras moverse a la parte superior;
+; PilotP=1800, PilotL=2000
+; Synch1P=500, Synch2P=500
+; ZeroP=259, OneP=518
+
+LD IX,$7530 	; 30000
+LD DE,$048C 	; 1164
+
+($FEE5),$41 ; azul
+LD A, $AA
+SCF
+FE0F CALL $FF20; sync bloque 1 ; azul oscuro
+
+FE12 LD A, $45 ; cyan
+FE1B CALL $FF06 ; datos bloque 1 ¿comprimidos? cyan
+
+FE20 CALL $5CE3 ; ¿descomprime a $8000? 
+
+($FEE5),$40 ; negro
+LD A, $AA
+SCF
+FE2B CALL $FF20	; sync bloque 2, no veo rayas en el borde: sin borde
+FE47 CALL $FEB8	; sin borde
+
+FE70 LD SP, $FFFE ; carga el pure block de 41K, rayas verdes
+FE73 LD IX, $5C00
+FE77 LD DE, $A203
+FE7A LD A,$44	; verde
+FE7C LD ($FEE5),A
+FE7F LD A,C
+FE80 AND $40
+FE82 AND LD C,A
+FE83 CALL $FF06
+
+FE88 EI ; fin de carga, muevo datos a $FFD0
+
+FE94 JP $FFD0
+FFE8 LD SP,$626C
+FFEB JP $8000 ; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+En zaxxon dobre linea se ve el salto a los pure blocks
+FE62 LD SP,$FFFE
+FE65 LD IX,$5C00
+FE69 LD DE,$A203
+FE6C LD A,$44     ; verde
+FE6E LD ($FECC),A
+FE75 CALL $FEED ; carga el pure block de 41K
+FE7A EI
+FE7B CALL $8000
+
