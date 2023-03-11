@@ -11,11 +11,12 @@ LD_BLOCK   CALL LD_BYTES
 LD_BYTES   INC  D               
            EX   AF,AF'         
            DEC  D                
-           LD   A,$08            ;(Border BLACK $ MIC off)
+           LD   A,$0F            ;(Border WHITE $ MIC off)
            OUT  ($FE),A         
            IN   A,($FE)         
-           AND  $40              
-           LD   C,A              ;(BLACK/chosen colour)
+           AND  $40
+	   OR   $02		              
+           LD   C,A              ;(RED/chosen colour)
            CP   A               
 LD_BREAK   RET  NZ              
 LD_START   CALL LD_EDGE_1       
@@ -39,7 +40,10 @@ LD_SYNC    LD   B,$B0
            JR   NC,LD_SYNC      
 
            CALL LD_EDGE_1       
-           RET  NC             
+           RET  NC
+	   LD 	A, C
+           XOR	$03		; 2/5 ->1/6 BLUE && YELLOW 
+	   LD	C, A		; IMPORTANTE            
            LD   H,$00          
            LD   B,$80           
            JR   LD_MARKER      
@@ -107,15 +111,20 @@ LD_SAMPLE  INC  B                ;4    (variable 'b')
             			       ;|   | EI |   | EO | MO |  Border  |
             			       ;+-----------------+---------------+
            LD      A,C
-	   INC     A      	; RAINBOW    
-           XOR     $40          ;$41/$00: conmuta borde de 001 azul a 000 negro, y bit 6 activa/desactiva
-           AND     $47   
-         
+	   CPL			 ; INVERT ALL BITS             
+           ;XOR     $47          ;$41/$00: conmuta borde de 001 azul a 000 negro, y bit 6 activa/desactiva
+
+          ;LD      A,C       	
+          ;INC     A	           ; RAINBOW
+          ;XOR     $20
+          ;AND     $27 
+          
            LD   C,A
+	   AND	$07
 	   ;ADD  $01		   ; colour 0/1 -> 1/2 (blue/red)
-	   ;XOR 	$06		   ; colour 0/7 -> 6/1        
-           ;AND  $07            
-           ;OR   $08 		   ; MIC OFF, lo quito para compensar ciclos   
+	;   XOR 	$06		   ; colour 0/7 -> 6/1        
+        ;    AND  $07            
+           OR   $08 		   ; MIC OFF, lo quito para compensar ciclos   
            OUT  ($FE),A       
            SCF                  
            RET            

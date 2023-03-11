@@ -46,7 +46,7 @@ LD_SYNC    LD   B,$B0
 
 LD_LOOP    EX   AF,AF'        
            JR   NZ,LD_FLAG  
-           LD   (IX$00),L      
+           LD   (IX+$00),L      
            JR   LD_NEXT  
 
 LD_FLAG    RL   C       
