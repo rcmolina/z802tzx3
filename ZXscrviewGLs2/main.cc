@@ -258,54 +258,55 @@ int main (int argc, char *argv[])
 //    ofn.Flags        = OFN_DONTADDTORECENT | OFN_FILEMUSTEXIST;
 	ofn.Flags = OFN_PATHMUSTEXIST|OFN_FILEMUSTEXIST;
   
-  if (!(GetOpenFileNameA( &ofn )))
+  if (SPSCR==NULL)
   {
-    // All this stuff below is to tell you exactly how you messed up above. 
-    // Once you've got that fixed, you can often (not always!) reduce it to a 'user cancelled' assumption.
-    switch (CommDlgExtendedError())
-    {
-	/*
-      case CDERR_DIALOGFAILURE   : std::cout << "CDERR_DIALOGFAILURE\n";   break;
-      case CDERR_FINDRESFAILURE  : std::cout << "CDERR_FINDRESFAILURE\n";  break;
-      case CDERR_INITIALIZATION  : std::cout << "CDERR_INITIALIZATION\n";  break;
-      case CDERR_LOADRESFAILURE  : std::cout << "CDERR_LOADRESFAILURE\n";  break;
-      case CDERR_LOADSTRFAILURE  : std::cout << "CDERR_LOADSTRFAILURE\n";  break;
-      case CDERR_LOCKRESFAILURE  : std::cout << "CDERR_LOCKRESFAILURE\n";  break;
-      case CDERR_MEMALLOCFAILURE : std::cout << "CDERR_MEMALLOCFAILURE\n"; break;
-      case CDERR_MEMLOCKFAILURE  : std::cout << "CDERR_MEMLOCKFAILURE\n";  break;
-      case CDERR_NOHINSTANCE     : std::cout << "CDERR_NOHINSTANCE\n";     break;
-      case CDERR_NOHOOK          : std::cout << "CDERR_NOHOOK\n";          break;
-      case CDERR_NOTEMPLATE      : std::cout << "CDERR_NOTEMPLATE\n";      break;
-      case CDERR_STRUCTSIZE      : std::cout << "CDERR_STRUCTSIZE\n";      break;
-      case FNERR_BUFFERTOOSMALL  : std::cout << "FNERR_BUFFERTOOSMALL\n";  break;
-      case FNERR_INVALIDFILENAME : std::cout << "FNERR_INVALIDFILENAME\n"; break;
-      case FNERR_SUBCLASSFAILURE : std::cout << "FNERR_SUBCLASSFAILURE\n"; break;
-      default                    : std::cout << "You cancelled.\n";
-*/	    
+	    if (!GetOpenFileNameA( &ofn )) {
+		    // All this stuff below is to tell you exactly how you messed up above. 
+		    // Once you've got that fixed, you can often (not always!) reduce it to a 'user cancelled' assumption.
+		    switch (CommDlgExtendedError())
+		    {
+			/*
+		      case CDERR_DIALOGFAILURE   : std::cout << "CDERR_DIALOGFAILURE\n";   break;
+		      case CDERR_FINDRESFAILURE  : std::cout << "CDERR_FINDRESFAILURE\n";  break;
+		      case CDERR_INITIALIZATION  : std::cout << "CDERR_INITIALIZATION\n";  break;
+		      case CDERR_LOADRESFAILURE  : std::cout << "CDERR_LOADRESFAILURE\n";  break;
+		      case CDERR_LOADSTRFAILURE  : std::cout << "CDERR_LOADSTRFAILURE\n";  break;
+		      case CDERR_LOCKRESFAILURE  : std::cout << "CDERR_LOCKRESFAILURE\n";  break;
+		      case CDERR_MEMALLOCFAILURE : std::cout << "CDERR_MEMALLOCFAILURE\n"; break;
+		      case CDERR_MEMLOCKFAILURE  : std::cout << "CDERR_MEMLOCKFAILURE\n";  break;
+		      case CDERR_NOHINSTANCE     : std::cout << "CDERR_NOHINSTANCE\n";     break;
+		      case CDERR_NOHOOK          : std::cout << "CDERR_NOHOOK\n";          break;
+		      case CDERR_NOTEMPLATE      : std::cout << "CDERR_NOTEMPLATE\n";      break;
+		      case CDERR_STRUCTSIZE      : std::cout << "CDERR_STRUCTSIZE\n";      break;
+		      case FNERR_BUFFERTOOSMALL  : std::cout << "FNERR_BUFFERTOOSMALL\n";  break;
+		      case FNERR_INVALIDFILENAME : std::cout << "FNERR_INVALIDFILENAME\n"; break;
+		      case FNERR_SUBCLASSFAILURE : std::cout << "FNERR_SUBCLASSFAILURE\n"; break;
+		      default                    : std::cout << "You cancelled.\n";
+		*/	    
+		
+		      case CDERR_DIALOGFAILURE   : printf("CDERR_DIALOGFAILURE\n");   break;
+		      case CDERR_FINDRESFAILURE  : printf("CDERR_FINDRESFAILURE\n");  break;
+		      case CDERR_INITIALIZATION  : printf("CDERR_INITIALIZATION\n");  break;
+		      case CDERR_LOADRESFAILURE  : printf("CDERR_LOADRESFAILURE\n");  break;
+		      case CDERR_LOADSTRFAILURE  : printf("CDERR_LOADSTRFAILURE\n");  break;
+		      case CDERR_LOCKRESFAILURE  : printf("CDERR_LOCKRESFAILURE\n");  break;
+		      case CDERR_MEMALLOCFAILURE : printf("CDERR_MEMALLOCFAILURE\n"); break;
+		      case CDERR_MEMLOCKFAILURE  : printf("CDERR_MEMLOCKFAILURE\n");  break;
+		      case CDERR_NOHINSTANCE     : printf("CDERR_NOHINSTANCE\n");     break;
+		      case CDERR_NOHOOK          : printf("CDERR_NOHOOK\n");          break;
+		      case CDERR_NOTEMPLATE      : printf("CDERR_NOTEMPLATE\n");      break;
+		      case CDERR_STRUCTSIZE      : printf("CDERR_STRUCTSIZE\n");      break;
+		      case FNERR_BUFFERTOOSMALL  : printf("FNERR_BUFFERTOOSMALL\n");  break;
+		      case FNERR_INVALIDFILENAME : printf("FNERR_INVALIDFILENAME\n"); break;
+		      case FNERR_SUBCLASSFAILURE : printf("FNERR_SUBCLASSFAILURE\n"); break;
+		      default                    : printf("You cancelled.\n");	      	  	  	    			  
+    		}
+		}
+		fisier = open(filename,O_RDONLY);
+  } 
+  else fisier = open(SPSCR,O_RDONLY);
 
-      case CDERR_DIALOGFAILURE   : printf("CDERR_DIALOGFAILURE\n");   break;
-      case CDERR_FINDRESFAILURE  : printf("CDERR_FINDRESFAILURE\n");  break;
-      case CDERR_INITIALIZATION  : printf("CDERR_INITIALIZATION\n");  break;
-      case CDERR_LOADRESFAILURE  : printf("CDERR_LOADRESFAILURE\n");  break;
-      case CDERR_LOADSTRFAILURE  : printf("CDERR_LOADSTRFAILURE\n");  break;
-      case CDERR_LOCKRESFAILURE  : printf("CDERR_LOCKRESFAILURE\n");  break;
-      case CDERR_MEMALLOCFAILURE : printf("CDERR_MEMALLOCFAILURE\n"); break;
-      case CDERR_MEMLOCKFAILURE  : printf("CDERR_MEMLOCKFAILURE\n");  break;
-      case CDERR_NOHINSTANCE     : printf("CDERR_NOHINSTANCE\n");     break;
-      case CDERR_NOHOOK          : printf("CDERR_NOHOOK\n");          break;
-      case CDERR_NOTEMPLATE      : printf("CDERR_NOTEMPLATE\n");      break;
-      case CDERR_STRUCTSIZE      : printf("CDERR_STRUCTSIZE\n");      break;
-      case FNERR_BUFFERTOOSMALL  : printf("FNERR_BUFFERTOOSMALL\n");  break;
-      case FNERR_INVALIDFILENAME : printf("FNERR_INVALIDFILENAME\n"); break;
-      case FNERR_SUBCLASSFAILURE : printf("FNERR_SUBCLASSFAILURE\n"); break;
-      default                    : printf("You cancelled.\n");	      
-	  
-	  
-    }
-  }
 
-    //fisier = open(SPSCR,O_RDONLY);
-	fisier = open(filename,O_RDONLY);
     if(fisier < 0) { printf("No SCREEN$ file given.\n"); return 1;}
 	
     read(fisier,zxscr,6144);
