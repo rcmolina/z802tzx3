@@ -1,0 +1,184 @@
+   1 REM        MYTH
+   2 REM  CRACKED BY RAF'90
+   3 BORDER NOT PI: PAPER NOT PI: CLEAR VAL "24499": LOAD ""CODE : RANDOMIZE USR VAL "4E4": POKE VAL "23739",CODE "o": LOAD ""CODE : RANDOMIZE USR VAL "24500"+USR VAL "61504"
+
+40000,4475		; loader
+USR 40000 $9C40
+
+$F226 JR Z,$F22F	; en $F61E, $F08D (tras cargar bloque 0 y stop the tape) o $F226 (tras cargar bloque 1)
+			; vuelta de Gameover en $791C $8B92 (borra pantalla y luego restart phase)
+sp=$fffd
+PC=$F22F
+
+MYTH1-MYTH5
+$7004,$8FFC -1 ->$FFFF
+28676,36860 -1 ->65535
+;
+; Cambiar el salto cuando pulso <Esc>
+F2E7 CP 0
+F2E9 JR Z,$F2F1
+
+F2EB POP HL
+F2EC CP 1
+F2EE JR Z,$F048	; salto si pulso RESTART FROM STAGE ONE , para cambiarlo por $F2F1 (o $F61E) primero tengo que nopear el POP HL de encima
+		; En MYTH2 (fase 2): Nopeo POP HL, y salto a $F0C0 para que cargue la fase siguiente, fase 3
+		; o nopeo desde $F2EB->$F2F0 y vuelve a la misma fase. Lo puedo hacer al final del cargador.
+-------------------------------------------------------------------------------------------------------------------------------------------
+F1F8 CALL $F3B0
+F3B0 POP IY
+F3B2 CALL $F3CB
+F3B5 PUSH IY
+
+F47E LD ($F9A8),0
+F481 RET
+
+F20C CALL $F3BD
+F3BD CALL $F3CB
+
+F20F
+F223 CALL $F5E4	 ; carga
+F226 JR Z,$F22F
+
+F5E4
+F5FB CALL $FF54 ;; carga
+F5FE RET NZ
+F5FF CALL $F3B0 ; ejecuta, se va $F3B0
+
+FF54 DI
+FF60 CALL $FE90		; carga
+FF63 CALL $F629		; mueve 3 bytes
+FF69 CALL $F635
+FF71 RET Z		; a $F5FE
+F645 RET
+
+FE90
+En:
+FEAA LD IX,$6C3F=27711 ; origen de carga
+FECA PUSH HL ; HL=$FEB1 , vuelta
+FECB JP $0562 ; IX=$6C3F, DE=$8400	; carga tb el bloque anterior $6c3f,$3C00=15360
+;;
+FEB1 ..
+Vuelve a $FF63
+FF63 CALL $F629 ; ($FEFE,3) a $F66C
+FF69 CALL $F635 ; cambia [$FEFE] y [$FEFF]
+Después de cargar un bloque erróneo, comprueba en:
+
+FF6C LD A,($F9AE)	
+FF6F CP $00
+FF71 RET Z	; pongo el flag a Z y me deja cargar la fase que quiera, luego puedo ya sacar la distintas fases
+
+---------------------------------------------------------------------------------------------------------------------------------
+La Fase se almacena en $F9AE, la fase 0 es el bloque de 15K. Si hago "RESTART FROM STAGE ONE", hay que poner el bloque "0" de 15K
+FF75 LD HL, $FF7E
+FF78 LD ADD HL,BC ; sumo el número de fase
+FF79 CP (HL) 	; [FF7F]=$16=[$BB80]
+F5FF CALL $F3B0
+; lo que tengo que hacer es poner un trap para  er cuando cambia el contenido de [$F9AE]
+; Cuando le doy ESC y va sacando el printado, se resetea a [$F9AE]=1, se machaca.
+; Con este valor se puede jugar para parchear y adelntar a la fase siguiente
+
+F20F POP IY		;$f0ea
+F217 LD C,(IY+$02)	; C= [$f0ec] ; NO ES LA FASE EN LA QUE VOY A CARGAR, O POR LA QUE VOY. Si la pongo igual, se reinicia la fase y no tiene que cargar fichero.
+			; el problema: f0ec es el IY+2 de la fase 1, que es donde se encuentra guardada
+F223 CALL $F5E4
+
+F5F0 LD A,($F9AE)
+F5F3 CP C
+F5F4 JR Z,$F623
+F5F6 LD A,C		; busca la fase por la que voy
+F5F7 LD ($F9AE),A	; lo guarda
+============================================================================================================================================================
+; Conclusiones: Vuelvo al tap del principio, y fuerzo para que vaya por la alternativa de la fase con el nombre bien puesto, pongo punto de ruptura en $F0A4
+;
+F0A4 LD IY,$F0EA	; Fase1 STAGE1, 
+F0A8 CALL $F1CA		; printa y carga
+F0AB JR Z,$F0B2
+
+F0B2 LD IY,$F111	; Fase2 GREECE ($F0A4 + $E)
+F0B6 CALL $F1CA		; printa y carga
+F0B9 JR Z,$F0C0
+
+F0C0 LD IY,$F13E	; Fase3 ($F0B2 +$0E)
+F0C4 CALL $F1CA		; printa y carga
+F0C7 JR Z,$F0CE
+
+F0CE LD IY,$F172	; Fase4
+F0D2 CALL $F1CA		; printa y carga
+F0D5 JR Z,$F0DC
+
+F0DC LD IY,$F1A1	; printa y carga Fase5
+F0E0 CALL $F1CA
+F0E3 JR Z,$F0DC
+
+F1CA
+F1D6 CP (IY+$02)	; p.e para fase 2, $IY=$F111 y [$F113]=2 ;; en la fase 1 hay un error en $F0EC que debe ser 1
+F1D9 JP Z,$F200
+=========================================================================================================================================================
+------------------------------------------------
+; cambiar teclas IN en $FC90, que viene de $ADA2
+
+ADA2 		; disparo
+ADA8 		; abajo
+ADAE 		; arriba
+ADB4-ADC9-ADCD  ; izquierda
+ADB9 		; derecha
+
+
+;Check del <ESC> o <SPC>  **************** La tecla <ESC> es IGUAL A un break i.e. SHIFT+SPACE *****************
+;
+$7872 CALL $8A54
+$7875 JR NZ,$7889 ; al ser ZER0, sigue
+
+;https://auamstrad.es/cursos-tutoriales/ensamblador-para-zx-spectrum-04/
+;Cada semi fila está identificada por un número:
+;Semi fila	Valor Hexadecimal	Valor Binario
+;
+;Caps Shift-V	$FE			1111 1110
+;A-G		$FD			1111 1101
+;Q-T		$FB			1111 1011
+;1-5		$F7			1111 0111
+;0-6		$EF			1110 1111
+;P-Y		$DF			1101 1111
+;Enter-H	$BF			1011 1111
+;Space-B	$7F			0111 1111
+
+
+8A54 ; comprobacion de tecla, ¿se puede cambiar el <ESC>?
+8A57 LD BC,$7FFE	; semifila $7F es la de <spc> ;; 01 FE DF for LD BC, $DFFE ;; fila del disparo (letra O)
+8A5A IN A,(C)
+8A5C BIT 0,A		; CB 4F for BIT 1,A	;; cambio a la P
+8A5E RET
+
+
+$7877 LD BC,$FEFE	; He pulsado <ESC> o <spc>, compruebo de nuevo semifila $FE
+$787E JP Z,$789C	; ZERO si es <ESC>, salta a $789C
+$7881			; si es <spc>
+
+Si pulso <ESC> pasa por:
+$7877
+$787E JP Z,$789C	; ZERO si es <ESC>	;; si cambio CA 9C 78 por C2 9C 78 (intercambio Z<->NZ , entonces ahora con el espacio salta al menu
+$789C			; he pulsado <ESC>, si pulsara <SPC> iria a $7881
+$78A2			; prints Game Over
+$8C3D
+$78AA
+$8C3D   ; tras el RET a $78B2
+
+$78B2
+$7900
+$7910
+$7925
+$7929
+$7934
+$7938
+
+La Pausa con el ENTER:
+79B1
+79BF IN A,(C)
+79C1 BIT 0,A
+79C3 JR NZ,$79BF
+
+viene de:
+7842 CALL $79B1
+
+
+
