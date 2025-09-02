@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** tapelist
+** zlistbas
 **                                                                       
 *******************************************************************************/
 
@@ -99,9 +99,9 @@ int main (int argc, char *argv[])
   //mem7old=mem[7]; 
   mem[7]=0;
 
-  if (!strcmp((char *)mem, TZXSTART)) tape=TZX;
+  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) tape=SNA;  
+  else if (!strcmp((char *)mem, TZXSTART)) tape=TZX;
   else if (!strcmp((char *)mem, TAPSTART)) tape=TAP;
-  else if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) tape=SNA;  
   else if (!strcmp((char *)mem, BASSTART)) tape=BAS;
   else { free(mem); Error ("Unknown ZX format!");} 
 
