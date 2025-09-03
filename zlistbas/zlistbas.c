@@ -13,9 +13,10 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.00"
+#define PROG_VER "1.01"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
+
 
 FILE *fIn;
 unsigned short ProgAddr, LineNum, LineLen;
@@ -32,7 +33,7 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum Tapelist{unknown, TZX, TAP, SNA, BAS} tape = unknown;
+enum fflist{unknown, TZX, TAP, SNA, Z80, BAS} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
@@ -47,6 +48,7 @@ void ConCat(unsigned char *Out,int *Pos,unsigned char *Text);
 void TZXPROC();
 void TAPPROC();
 int SNAPROC();
+int Z80PROC();
 void BASPROC();
 
 int main (int argc, char *argv[])
@@ -54,7 +56,7 @@ int main (int argc, char *argv[])
 
   if (argc < 2 || argc > 3)
     {
-    printf ("\nUsage: %s [option] input.tzx|input.tap|input.sna|input.bas \n", argv[0]);
+    printf ("\nUsage: %s [option] file[.tzx|.tap|.sna|.z80|.bas] \n", argv[0]);
 	printf("\n");
 	printf ("options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
@@ -94,16 +96,18 @@ int main (int argc, char *argv[])
   const unsigned char TZXSTART[]="ZXTape!";
   const unsigned char TAPSTART[]={0x13,0x00};
   const unsigned char SNAEXT[]=".SNA";
+  const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DO";
 
   //mem7old=mem[7]; 
   mem[7]=0;
 
-  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) tape=SNA;  
-  else if (!strcmp((char *)mem, TZXSTART)) tape=TZX;
-  else if (!strcmp((char *)mem, TAPSTART)) tape=TAP;
-  else if (!strcmp((char *)mem, BASSTART)) tape=BAS;
-  else { free(mem); Error ("Unknown ZX format!");} 
+  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) fformat=SNA;
+  else if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) fformat=Z80;
+  else if (!strcmp((char *)mem, TZXSTART)) fformat=TZX;
+  else if (!strcmp((char *)mem, TAPSTART)) fformat=TAP;
+  else if (!strcmp((char *)mem, BASSTART)) fformat=BAS;
+  else {free(mem); Error ("Unknown ZX file format!");} 
 
   //mem[7]=mem7old;
   fseek(fIn,0,SEEK_SET);
@@ -112,7 +116,7 @@ int main (int argc, char *argv[])
   
   pos = block = longer = custom = only = dataonly = direct = not_rec;
 
-  switch (tape)
+  switch (fformat)
   	{
 	case TAP:
 			 TAPPROC();
@@ -122,14 +126,15 @@ int main (int argc, char *argv[])
 			 break;
 	case SNA: 
 			 SNAPROC();
+			 break;
+	case Z80: 
+			 Z80PROC();
 			 break;	   	   	    
 	case BAS: 
 			 BASPROC();
-			 break;	   	    
+			 break;    
 	}
 	
-  fclose (fIn);
-  free (mem);
   //system("pause");
   return (0);
 }
@@ -165,6 +170,8 @@ long FileLength (FILE* fh)
 void Error (char *errstr)
 {
   printf ("\n-- Error: %s ('%s')\n", errstr, strerror (errno));
+  fclose (fIn);
+  free (mem);  
   exit (0);
 }
 
@@ -181,10 +188,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
 
-    char cc1[]= "\\{nn}\\{n}";
-	char cc2[]= "\\#0nn\\#00n";
-	char cc3[]= "\\{An}";
-	char cc4[]= "\";CHR$ nn;CHR$ n;\"";
+    char cc1f[]= "\\{nn}\\{n}";
+	char cc2f[]= "\\#0nn\\#00n";
+	char cc3f[]= "\\{An}";
+	char cc4f[]= "\";CHR$ nn;CHR$ n;\"";
 	char *cc;
 
     for(i=0;i<LineLen;i++)
@@ -196,60 +203,60 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 16:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='i';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='i';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    		
             i++;      /* embedded INK */
             break;
         case 17:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='p';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='p';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    	
             i++;      /* embedded PAPER */
             break;
         case 18:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='f';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='f';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   
             i++;      /* embedded FLASH */
             break;
         case 19:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='b';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='b';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;	   	    
 	        }	   
             i++;      /* embedded BRIGHT */
             break;
         case 20:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;			  
 	        }	   
             i++;      /* embedded INVERSE */
             break;
         case 21:
 		    switch (colorcode) {
-	          case 1:  cc=cc1; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3; cc[2]='o'; cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=cc2f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 3:  cc=cc3f; cc[2]='o'; cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break; 	  
 	        }	   
             i++;      /* embedded OVER */
@@ -773,6 +780,152 @@ int SNAPROC()
 		pos= pos +2 +2 + LineLen; 	        
     }
 	return(0);
+
+}
+
+int Z80PROC()
+{
+
+#define printblock(buff,len,adr0) \
+    for (i=0;i<len;i+=16) { \
+        printf ("#%04x:  ",i+adr0); for (j=0;j<16;j++) { \
+            printf ("%02x ",buff[i+j]); \
+            if (j==7) printf (" "); if (j==15) printf ("\n"); } } \
+    printf ("\n");
+
+#define word unsigned short int
+#define byte unsigned char
+
+word i;
+byte ver,j,rommod,verbose=0;
+byte *buf1,*buf2, *buf3;
+
+unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned short int size)
+{
+    register unsigned short int incount=0,outcount=0;
+    unsigned short int i;
+    unsigned char j;
+    do {
+       if ((inp[0]==0xED)&&(inp[1]==0xED)) {
+            i=inp[2];
+            j=inp[3];
+            inp+=4;
+            incount+=4;
+            outcount+=i;
+            for (;i!=0;i--) *(outp++)=j;
+       } else {
+         *(outp++)=*(inp++);
+         incount++;
+         outcount++;
+       }
+    } while (outcount<size);
+    if (outcount!=size) incount=0;
+    return (incount);
+}
+
+     //fread(&buffer,1,30,fin);
+	 ver=0;
+	 if (mem[6]==0) {		// pc
+		 //fread(&(buffer.length),1,2,fin); // z80 version
+		 len = Get2(&mem[30]);
+		 switch (len) {
+	        case 21:
+	        case 23:
+			     //printf ("(Version 2.0 .Z80 file)\n\n");
+	             ver=2;
+	             break;
+	        case 54:
+	             //printf ("(Version 3.0 .Z80 file)\n\n");
+	             ver=3;
+	             break;
+	        default:
+		         printf ("\nUnsupported version of .Z80 file, or .Z80 file corrupt\n\n");
+		         return(1);
+		    }
+			//fread(&(buffer.rpc2),1,buffer.length,fin);
+			pos= 32 +len;
+     } else {
+	     //printf ("(Version 1.45 or earlier .Z80 file)\n\n");	    
+     }
+	
+    if (ver<2) {
+         buf1=(unsigned char*)malloc(49152L+256);
+         buf2=(unsigned char*)malloc(49152L+256);
+		 
+		 //pos=30; fseek(fIn, pos,SEEK_SET);fread(buf1,1,49152L+256,fIn);
+		 pos=30; memcpy(buf1, mem +pos ,flen -pos);
+		    
+		 //if (buffer.rr_bit7&32) unpack(buf1,buf2,49152L);
+		 if (mem[12]&32) {unpack(buf1,buf2,49152L); buf3=buf2; flen =49152; }         //Block of data is compressed, bit5 ON
+		 else buf3=buf1;
+
+		 //for (i=0;i<100;i++) printf("%d 0x%X\n", i, buf1[i]);
+		 //printblock(buf2,49152L,16384)	 	 // buf2
+		 
+	} else {
+	     buf1=(unsigned char*)malloc(16384+256);
+	     buf2=(unsigned char*)malloc(16384+256);
+         buf3=(unsigned char*)malloc(49152L+256);
+		 	    
+	     //i=fread(&blockhdr,1,3,fin);			// 3 bytes: 2 bytes for length and1 byte for pagenumber
+		 len = Get2(&mem[pos]); pos= pos +3;
+		 
+	     while (pos < flen) {
+            //printf ("Page nr: %2d      Block length: %d\n", mem[pos -1], len);
+            //i=fread(buf1,1,blockhdr.length,fin);
+		    memcpy(buf1, mem +pos , len); pos = pos +len;
+					
+	 	    unpack(buf1,buf2,16384);
+			
+			switch (mem[pos -len -1])
+			  {
+			  case 4: memcpy(buf3 + 16384, buf2, 16384); break; // page 4: 8000-bfff
+			  case 5: memcpy(buf3 + 32768, buf2, 16384); break; // page 5: c000-ffff
+			  case 8: memcpy(buf3, buf2, 16384); break;         // page 8: 4000-7fff
+			  }
+			
+	 	    //printblock(buf2,16384,0)
+			
+		    //i=fread(&blockhdr,1,3,fin);
+			len = Get2(&mem[pos]); pos= pos +3;	     
+	     }
+		 flen =49152;
+		 //printblock(buf3,49152,0)
+		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[i]); printf("\n");
+		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[16384+i]); printf("\n");
+		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[32768+i]); printf("\n");
+		 //return(1);
+    }
+
+
+    // Get the PROG system variable (PEEK 23635+256*PEEK 23636)
+	pos=23635 - 16384;
+	LineData[0]= buf3[pos]; LineData[1]= buf3[pos+1];
+    ProgAddr = LineData[0] | LineData[1]<<8;
+
+    if ((ProgAddr < 23296) || (ProgAddr > 65530)){
+        fprintf(stderr,"Invalid system variable area. This snapshot does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    // seek to PROG area
+	pos=ProgAddr-16384;
+    while (pos < flen) {	
+        LineNum = 256*buf3[pos] + buf3[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen = buf3[pos +2] + 256*buf3[pos +3];
+
+		memcpy(LineData, buf3 +pos +4 ,LineLen);
+        LineData[LineLen]=0; //Terminate the line data
+
+        DeTokenize(LineData,LineLen,LineText);
+        printf("%d%s\n",LineNum,LineText);
+		
+		pos= pos +2 +2 + LineLen; 	        
+    }
+	return(0);	      	   
+
 
 }
 
