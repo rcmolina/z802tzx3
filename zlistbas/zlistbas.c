@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.01"
+#define PROG_VER "1.02"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
 
@@ -691,29 +691,60 @@ void ConCat(unsigned char *Out,int *Pos,unsigned char *Text)
 void TZXPROC()
 {
     pos = 10;
-	j = pos;
-	while (pos < flen){
-		len = Get2(&mem[pos + 0x1B]);
-	    while ((0x1E + j <  pos +1 +2 +2 +0x13 + 1 +2 +2 +len -1) && (mem[pos + 0x06]==0)) {
-	
-			LineNum = 256*mem[0x1E +j] + mem[0x1F +j];
-	        if (LineNum > 16384) break; //se salta la zona de vars tras programa
-	
-	        LineLen = mem[0x20 +j] + 256*mem[0x21 +j];
-	
-			memcpy(LineData,mem+0x22+j ,LineLen);
-	        LineData[LineLen]=0; // Terminate the line data
+    j = pos;
+    while (pos < flen){	
+	     switch (mem[10])
+	        {
+	        case 0x10:
+				len = Get2(&mem[pos +1 +2 +2 +0x13 +1 +2]);	   //Data Block length
+			    while ((5 +0x13 +5 +1 + j <  pos +1 +2 +2 +0x13 +1 +2 +2 +len -1) && (mem[pos +5 +1]==0)) {
 			
-	        DeTokenize(LineData,LineLen,LineText);
-			printf("%d%s\n",LineNum,LineText);
+					LineNum = 256*mem[5 +0x13 +5 +1 +j] + mem[5 +0x13 +5 +2 +j];
+			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 			
-			j= j + 2 +2 + LineLen;      
-	    }
-		if (mem[pos + 0x06]==0) printf("\n");
-		pos = pos +1 +2 +2 +0x13 + 1 +2 +2 +len;
-		j= pos;	     	 
-	}
+			        LineLen = mem[5 +0x13 +5 +3 +j] + 256*mem[5 +0x13 +5 +4 +j];
+                    if (LineLen > len) LineLen= len;
+			
+					memcpy(LineData,mem+5 +0x13 +5 +5 +j ,LineLen);
+			        LineData[LineLen]=0; // Terminate the line data
+					
+			        DeTokenize(LineData,LineLen,LineText);
+					printf("%d%s\n",LineNum,LineText);
+					
+					j= j + 2 +2 + LineLen;      
+			    }
+				if (mem[pos +5 +1]==0) printf("\n");
+				pos = pos +1 +2 +2 +0x13 + 1 +2 +2 +len; // header block length= id(1) +pause(2) +tzx block length(2) +0x13
+				j= pos;	 								 // data block length=  id(1) +pause(2)  + tzx block length(2) +len	   
+	
+			    break;
+		    case 0x11:
+				len = Get3(&mem[pos +1 +13 +2 +3 +0x13 +1 +13 +2]);	   //Data Block length
+			    while ((19 +0x13 +19 +1 + j <  pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len -1) && (mem[pos + 19 +1]==0)) {
+			
+					LineNum = 256*mem[19 +0x13 +19 +1 +j] + mem[19 +0x13 +19 +2 +j];
+			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
+			
+			        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
+					if (LineLen > len) LineLen= len;
+			
+					memcpy(LineData,mem+19 +0x13 +19 +5 +j ,LineLen);
+			        LineData[LineLen]=0; // Terminate the line data
+					
+			        DeTokenize(LineData,LineLen,LineText);
+					printf("%d%s\n",LineNum,LineText);
+					
+					j= j + 2 +2 + LineLen;      
+			    }
+				if (mem[pos + 19 +1]==0) printf("\n");
+				pos = pos +1 +13 +2 +3 +0x13 + 1 +13 +2 +3 +len; // header block length= id(1) +extra(13) +pause(2) +tzx length(3) +0x13
+				j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  + tzx length(3) + len
 
+			    break;
+		    default:
+		        break;
+		    }
+    }	
 }
 
 void TAPPROC()
@@ -721,14 +752,15 @@ void TAPPROC()
 	pos = 0;
 	j = pos;
     while (pos < flen){
-          len = Get2(&mem[pos + 0x15]);	        
+          len = Get2(&mem[pos + 0x15]);	        //Data Block length
 		  while ((0x18 + j < pos +2 +0x13 +2 +len -1) && (mem[pos + 0x03]==0)) {
 
 				LineNum = 256*mem[0x18 + j] + mem[0x19 + j];
 				if (LineNum > 16384) break;
 
 				LineLen = mem[0x1A + j] + 256*mem[0x1B + j];
-
+                if (LineLen > len) LineLen= len;
+				
 				memcpy(LineData,mem+0x1C+j ,LineLen);
 		        LineData[LineLen]=0; // Terminate the line data
 		
@@ -739,7 +771,7 @@ void TAPPROC()
 				
           }
 		  if (mem[pos + 0x03]==0) printf("\n");
-		  pos = pos +2 +0x13 +2 +len;
+		  pos = pos +2 +0x13 +2 +len; // header block length= 2 + 0x13 and data block length= 2 + len
 		  j= pos;
     }
 
@@ -770,6 +802,7 @@ int SNAPROC()
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = mem[pos +2] + 256*mem[pos +3];
+		if (LineLen > flen) LineLen= flen -(pos+4);
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -779,6 +812,7 @@ int SNAPROC()
 		
 		pos= pos +2 +2 + LineLen; 	        
     }
+	printf("\n");
 	return(0);
 
 }
@@ -822,10 +856,10 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
     if (outcount!=size) incount=0;
     return (incount);
 }
-
+     pos =0;
      //fread(&buffer,1,30,fin);
 	 ver=0;
-	 if (mem[6]==0) {		// pc
+	 if (mem[6]==0) {		// pc = for z80 ver >=2
 		 //fread(&(buffer.length),1,2,fin); // z80 version
 		 len = Get2(&mem[30]);
 		 switch (len) {
@@ -845,7 +879,8 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 			//fread(&(buffer.rpc2),1,buffer.length,fin);
 			pos= 32 +len;
      } else {
-	     //printf ("(Version 1.45 or earlier .Z80 file)\n\n");	    
+	     //printf ("(Version 1.45 or earlier .Z80 file)\n\n");
+		 pos = 30;  
      }
 	
     if (ver<2) {
@@ -859,25 +894,25 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 		 if (mem[12]&32) {unpack(buf1,buf2,49152L); buf3=buf2; flen =49152; }         //Block of data is compressed, bit5 ON
 		 else buf3=buf1;
 
-		 //for (i=0;i<100;i++) printf("%d 0x%X\n", i, buf1[i]);
 		 //printblock(buf2,49152L,16384)	 	 // buf2
+		 pos = flen;
 		 
 	} else {
 	     buf1=(unsigned char*)malloc(16384+256);
 	     buf2=(unsigned char*)malloc(16384+256);
          buf3=(unsigned char*)malloc(49152L+256);
 		 	    
-	     //i=fread(&blockhdr,1,3,fin);			// 3 bytes: 2 bytes for length and1 byte for pagenumber
-		 len = Get2(&mem[pos]); pos= pos +3;
+	     //i=fread(&blockhdr,1,3,fin);			// 3 bytes: 2 bytes for length and 1 byte for pagenumber
 		 
 	     while (pos < flen) {
+		    len = Get2(&mem[pos]);
             //printf ("Page nr: %2d      Block length: %d\n", mem[pos -1], len);
             //i=fread(buf1,1,blockhdr.length,fin);
-		    memcpy(buf1, mem +pos , len); pos = pos +len;
+		    memcpy(buf1, mem +pos +3, len);
 					
 	 	    unpack(buf1,buf2,16384);
 			
-			switch (mem[pos -len -1])
+			switch (mem[pos +2])
 			  {
 			  case 4: memcpy(buf3 + 16384, buf2, 16384); break; // page 4: 8000-bfff
 			  case 5: memcpy(buf3 + 32768, buf2, 16384); break; // page 5: c000-ffff
@@ -887,14 +922,10 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	 	    //printblock(buf2,16384,0)
 			
 		    //i=fread(&blockhdr,1,3,fin);
-			len = Get2(&mem[pos]); pos= pos +3;	     
+			pos= pos + 3 + len;
 	     }
 		 flen =49152;
 		 //printblock(buf3,49152,0)
-		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[i]); printf("\n");
-		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[16384+i]); printf("\n");
-		 //for (i=0;i<96;i++) printf("%d 0x%X\n", i, buf3[32768+i]); printf("\n");
-		 //return(1);
     }
 
 
@@ -915,6 +946,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = buf3[pos +2] + 256*buf3[pos +3];
+        if (LineLen > flen) LineLen= flen -(pos+4);
 
 		memcpy(LineData, buf3 +pos +4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -924,6 +956,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 		
 		pos= pos +2 +2 + LineLen; 	        
     }
+	printf("\n");
 	return(0);	      	   
 
 
@@ -939,6 +972,7 @@ void BASPROC()
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
         LineLen = mem[pos +2] + 256*mem[pos +3];
+        if (LineLen > len) LineLen= len;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; // Terminate the line data
@@ -948,5 +982,6 @@ void BASPROC()
 		
 		pos= pos +2 +2 + LineLen;      
     }
+	if (mem[0x0F]==0) printf("\n");
 }
 
