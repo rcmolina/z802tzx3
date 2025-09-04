@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.02"
+#define PROG_VER "1.03"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
 
@@ -28,7 +28,7 @@ long flen;
 unsigned char *mem;
 char buf[256];
 long pos, j;
-int len;
+int len, ProgLen;
 int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
@@ -696,14 +696,15 @@ void TZXPROC()
 	     switch (mem[10])
 	        {
 	        case 0x10:
+			    ProgLen = Get2(&mem[pos +1 +2 +2 +0x10]);
 				len = Get2(&mem[pos +1 +2 +2 +0x13 +1 +2]);	   //Data Block length
-			    while ((5 +0x13 +5 +1 + j <  pos +1 +2 +2 +0x13 +1 +2 +2 +len -1) && (mem[pos +5 +1]==0)) {
+			    while ((5 +0x13 +5 +1 + j <  pos +1 +2 +2 +0x13 +1 +2 +2 +ProgLen) && (mem[pos +5 +1]==0)) {
 			
 					LineNum = 256*mem[5 +0x13 +5 +1 +j] + mem[5 +0x13 +5 +2 +j];
 			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 			
 			        LineLen = mem[5 +0x13 +5 +3 +j] + 256*mem[5 +0x13 +5 +4 +j];
-                    if (LineLen > len) LineLen= len;
+                    if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) + LineNum(2) + LineLen(2)
 			
 					memcpy(LineData,mem+5 +0x13 +5 +5 +j ,LineLen);
 			        LineData[LineLen]=0; // Terminate the line data
@@ -719,21 +720,20 @@ void TZXPROC()
 	
 			    break;
 		    case 0x11:
+			    ProgLen = Get2(&mem[pos +1 +13 +2 +3 +0x10]);
 				len = Get3(&mem[pos +1 +13 +2 +3 +0x13 +1 +13 +2]);	   //Data Block length
-			    while ((19 +0x13 +19 +1 + j <  pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len -1) && (mem[pos + 19 +1]==0)) {
+			    while ((19 +0x13 +19 +1 + j <  pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +ProgLen) && (mem[pos + 19 +1]==0)) {
 			
 					LineNum = 256*mem[19 +0x13 +19 +1 +j] + mem[19 +0x13 +19 +2 +j];
 			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 			
 			        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
-					if (LineLen > len) LineLen= len;
-			
+					if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) + LineNum(2) + LineLen(2)
 					memcpy(LineData,mem+19 +0x13 +19 +5 +j ,LineLen);
 			        LineData[LineLen]=0; // Terminate the line data
 					
 			        DeTokenize(LineData,LineLen,LineText);
 					printf("%d%s\n",LineNum,LineText);
-					
 					j= j + 2 +2 + LineLen;      
 			    }
 				if (mem[pos + 19 +1]==0) printf("\n");
@@ -752,14 +752,15 @@ void TAPPROC()
 	pos = 0;
 	j = pos;
     while (pos < flen){
+          ProgLen = Get2(&mem[pos +2 +0x10]);
           len = Get2(&mem[pos + 0x15]);	        //Data Block length
-		  while ((0x18 + j < pos +2 +0x13 +2 +len -1) && (mem[pos + 0x03]==0)) {
+		  while ((0x18 + j < pos +2 +0x13 +2 +ProgLen) && (mem[pos + 0x03]==0)) {
 
 				LineNum = 256*mem[0x18 + j] + mem[0x19 + j];
 				if (LineNum > 16384) break;
 
 				LineLen = mem[0x1A + j] + 256*mem[0x1B + j];
-                if (LineLen > len) LineLen= len;
+                if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) + LineNum(2) + LineLen(2)
 				
 				memcpy(LineData,mem+0x1C+j ,LineLen);
 		        LineData[LineLen]=0; // Terminate the line data
@@ -802,7 +803,7 @@ int SNAPROC()
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = mem[pos +2] + 256*mem[pos +3];
-		if (LineLen > flen) LineLen= flen -(pos+4);
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -946,7 +947,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = buf3[pos +2] + 256*buf3[pos +3];
-        if (LineLen > flen) LineLen= flen -(pos+4);
+        if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, buf3 +pos +4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -964,15 +965,15 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 
 void BASPROC()
 {
-	len = Get4(&mem[0x0B]);
+	ProgLen = Get4(&mem[0x0B]);
 	pos = 128;
-    while ((pos < len) && (mem[0x0F]==0)) {
+    while ((pos < ProgLen) && (mem[0x0F]==0)) {
 
 		LineNum = 256*mem[pos] + mem[pos +1];
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
         LineLen = mem[pos +2] + 256*mem[pos +3];
-        if (LineLen > len) LineLen= len;
+        if (LineLen > ProgLen- pos -4) LineLen= ProgLen - pos -4;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; // Terminate the line data
