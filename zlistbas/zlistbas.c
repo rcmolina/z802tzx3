@@ -13,13 +13,13 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.03"
+#define PROG_VER "1.04"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
 
 
 FILE *fIn;
-unsigned short ProgAddr, LineNum, LineLen;
+unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k;
@@ -780,30 +780,43 @@ void TAPPROC()
 
 int SNAPROC()
 {
-    /* All 48K snapshots are 49179 bytes, check to ensure our .sna is at least this long */
+    // All 48K snapshots are 49179 bytes, check to ensure our .sna is at least this long
     if (flen < 49179) {
         fprintf(stderr,".SNA files should be at least 49179 bytes long, the input file is %d bytes\n",flen);
         return(3);
     }
 
-    /* Get the PROG system variable (PEEK 23635+256*PEEK 23636) */
-	pos=7278;
+    // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
+	pos=7278;	//23635 -16384 +27
 	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
     ProgAddr = LineData[0] | LineData[1]<<8;
 
     if ((ProgAddr < 23296) || (ProgAddr > 65530)){
-        fprintf(stderr,"Invalid system variable area. This snapshot does not contain a BASIC program.\n");
+        fprintf(stderr,"Invalid [PROG] in system in system variable area, does not contain a BASIC program.\n");
         return(4);
     }
 
-    /* seek to PROG area */
+    // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
+	pos=23627 - 16384 +27;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    VarsAddr = LineData[0] | LineData[1]<<8;
+
+    if ((VarsAddr < 23296) || (VarsAddr > 65530)){
+        fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    ProgLen = VarsAddr -ProgAddr;	//ProgLen= [VARS] - [PROG] = VarsAddr - ProgAddr;
+    //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
+	
+    // seek to PROG area
 	pos=ProgAddr-16384+27;
     while (pos < flen) {	
         LineNum = 256*mem[pos] + mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = mem[pos +2] + 256*mem[pos +3];
-		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+		if (LineLen > VarsAddr -16384 +27 -pos -4) LineLen= VarsAddr -16384 +27 -pos -4;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -906,12 +919,11 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	     //i=fread(&blockhdr,1,3,fin);			// 3 bytes: 2 bytes for length and 1 byte for pagenumber
 		 
 	     while (pos < flen) {
-		    len = Get2(&mem[pos]);
-            //printf ("Page nr: %2d      Block length: %d\n", mem[pos -1], len);
+		    len = Get2(&mem[pos]); if (len >= 16384) len=16384; //block is not compressed
+            //printf ("Page nr: %2d      Block length: %d\n", mem[pos +2], len);
             //i=fread(buf1,1,blockhdr.length,fin);
-		    memcpy(buf1, mem +pos +3, len);
-					
-	 	    unpack(buf1,buf2,16384);
+		    memcpy(buf1, mem +pos +3, len);	   	   	   	   	   
+	 	    if (len < 16384) unpack(buf1,buf2,16384); else memcpy(buf2, buf1, 16384);
 			
 			switch (mem[pos +2])
 			  {
@@ -930,16 +942,29 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
     }
 
 
-    // Get the PROG system variable (PEEK 23635+256*PEEK 23636)
+    // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
 	pos=23635 - 16384;
 	LineData[0]= buf3[pos]; LineData[1]= buf3[pos+1];
     ProgAddr = LineData[0] | LineData[1]<<8;
 
     if ((ProgAddr < 23296) || (ProgAddr > 65530)){
-        fprintf(stderr,"Invalid system variable area. This snapshot does not contain a BASIC program.\n");
+        fprintf(stderr,"Invalid [PROG] in system variable area, does not contain a BASIC program.\n");
         return(4);
     }
 
+    // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
+	pos=23627 - 16384;
+	LineData[0]= buf3[pos]; LineData[1]= buf3[pos+1];
+    VarsAddr = LineData[0] | LineData[1]<<8;
+
+    if ((VarsAddr < 23296) || (VarsAddr > 65530)){
+        fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    ProgLen = VarsAddr -ProgAddr;	//ProgLen= [VARS] - [PROG] = VarsAddr - ProgAddr;
+    //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
+	
     // seek to PROG area
 	pos=ProgAddr-16384;
     while (pos < flen) {	
@@ -947,7 +972,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = buf3[pos +2] + 256*buf3[pos +3];
-        if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+        if (LineLen > VarsAddr -16384 -pos -4) LineLen= VarsAddr -16384 -pos -4;
 
 		memcpy(LineData, buf3 +pos +4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
