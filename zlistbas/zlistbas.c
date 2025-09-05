@@ -888,7 +888,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	             ver=3;
 	             break;
             case 55:
-                 printf ("(Plus3 .Z80 file)\n\n");
+                 //printf ("(Plus3 .Z80 file)\n\n");
                  ver=3;
                  break;	     	 	 	  
 	        default:
