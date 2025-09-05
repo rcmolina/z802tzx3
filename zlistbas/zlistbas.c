@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.04"
+#define PROG_VER "1.05"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
 
@@ -810,13 +810,14 @@ int SNAPROC()
     //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
 	
     // seek to PROG area
-	pos=ProgAddr-16384+27;
+	pos=ProgAddr-16384 +27;
+	flen=VarsAddr -16384 +27;	
     while (pos < flen) {	
         LineNum = 256*mem[pos] + mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
 		LineLen = mem[pos +2] + 256*mem[pos +3];
-		if (LineLen > VarsAddr -16384 +27 -pos -4) LineLen= VarsAddr -16384 +27 -pos -4;
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -901,7 +902,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
          buf1=(unsigned char*)malloc(49152L+256);
          buf2=(unsigned char*)malloc(49152L+256);
 		 
-		 //pos=30; fseek(fIn, pos,SEEK_SET);fread(buf1,1,49152L+256,fIn);
+		 //i=fread(buf1,1,49152L+256,fIn);
 		 pos=30; memcpy(buf1, mem +pos ,flen -pos);
 		    
 		 //if (buffer.rr_bit7&32) unpack(buf1,buf2,49152L);
@@ -919,11 +920,18 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	     //i=fread(&blockhdr,1,3,fin);			// 3 bytes: 2 bytes for length and 1 byte for pagenumber
 		 
 	     while (pos < flen) {
-		    len = Get2(&mem[pos]); if (len >= 16384) len=16384; //block is not compressed
+		    len = Get2(&mem[pos]);
             //printf ("Page nr: %2d      Block length: %d\n", mem[pos +2], len);
             //i=fread(buf1,1,blockhdr.length,fin);
-		    memcpy(buf1, mem +pos +3, len);	   	   	   	   	   
-	 	    if (len < 16384) unpack(buf1,buf2,16384); else memcpy(buf2, buf1, 16384);
+			
+		    if (len == -1) {
+				memcpy(buf1, mem +pos +3, 16384);
+				buf2=buf1;
+		    }					
+	 	    else {
+				memcpy(buf1, mem +pos +3, len);
+				unpack(buf1,buf2,16384);
+			}
 			
 			switch (mem[pos +2])
 			  {
@@ -966,13 +974,14 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
     //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
 	
     // seek to PROG area
-	pos=ProgAddr-16384;
+	pos=ProgAddr -16384;
+	flen=VarsAddr -16384;
     while (pos < flen) {	
-        LineNum = 256*buf3[pos] + buf3[pos +1];   
+        LineNum = 256*buf3[pos] + buf3[pos +1];
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
-		LineLen = buf3[pos +2] + 256*buf3[pos +3];
-        if (LineLen > VarsAddr -16384 -pos -4) LineLen= VarsAddr -16384 -pos -4;
+		LineLen = buf3[pos +2] + 256*buf3[pos +3]; //printf("LineNum=%d LineLen=%d\n", LineNum, LineLen);
+        if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, buf3 +pos +4 ,LineLen);
         LineData[LineLen]=0; //Terminate the line data
@@ -990,15 +999,15 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 
 void BASPROC()
 {
-	ProgLen = Get4(&mem[0x0B]);
+	flen = Get4(&mem[0x0B]);
 	pos = 128;
-    while ((pos < ProgLen) && (mem[0x0F]==0)) {
+    while ((pos < flen) && (mem[0x0F]==0)) {
 
 		LineNum = 256*mem[pos] + mem[pos +1];
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
 
         LineLen = mem[pos +2] + 256*mem[pos +3];
-        if (LineLen > ProgLen- pos -4) LineLen= ProgLen - pos -4;
+        if (LineLen > flen -pos -4) flen= ProgLen - pos -4;
 
 		memcpy(LineData,mem+pos+4 ,LineLen);
         LineData[LineLen]=0; // Terminate the line data
