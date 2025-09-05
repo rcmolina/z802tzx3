@@ -887,6 +887,10 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	             //printf ("(Version 3.0 .Z80 file)\n\n");
 	             ver=3;
 	             break;
+            case 55:
+                 printf ("(Plus3 .Z80 file)\n\n");
+                 ver=3;
+                 break;	     	 	 	  
 	        default:
 		         printf ("\nUnsupported version of .Z80 file, or .Z80 file corrupt\n\n");
 		         return(1);
