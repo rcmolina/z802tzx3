@@ -100,18 +100,18 @@ int main (int argc, char *argv[])
   const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DOS";
 
-  int go= 1;
-  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) {fformat=SNA; go= 0;}
-  if (go) if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) {fformat=Z80; go= 0;} else {memold=mem[2]; mem[2]=0;}
-  if (go) if (!strcmp((char *)mem, SPSTART)) {fformat=SP; go= 0;} else {mem[2]=memold; memold=mem[7]; mem[7]=0;}
-  if (go) if (!strcmp((char *)mem, TZXSTART)) {fformat=TZX; go= 0;} else {mem[7]=memold; memold=mem[2]; mem[2]=0;}
-  if (go) if (!strcmp((char *)mem, TAPSTART)) {fformat=TAP; go= 0;} else {mem[2]=memold; memold=mem[8]; mem[8]=0;}
-  if (go) if (!strcmp((char *)mem, BASSTART)) {fformat=BAS; go= 0;} else {mem[8]=memold; free(mem); Error ("Unknown ZX file format!");}
-  
+  char go= 1;
+  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) {fformat= SNA; go= 0;}
+  if (go) if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) {fformat= Z80; go= 0;} else {memold= mem[2]; mem[2]= 0;}
+  if (go) if (!strcmp((char *)mem, SPSTART)) {fformat= SP; mem[2]= memold; go= 0;} else {mem[2]= memold; memold= mem[7]; mem[7]= 0;}
+  if (go) if (!strcmp((char *)mem, TZXSTART)) {fformat= TZX; mem[7]= memold; go= 0;} else {mem[7]= memold; memold= mem[2]; mem[2]=0;}
+  if (go) if (!strcmp((char *)mem, TAPSTART)) {fformat= TAP; mem[2]= memold; go= 0;} else {mem[2]= memold; memold= mem[8]; mem[8]=0;}
+  if (go) if (!strcmp((char *)mem, BASSTART)) {fformat= BAS; mem[8]= memold; go= 0;} else {mem[8]= memold; free(mem); Error ("Unknown ZX file format!");}
+
   fseek(fIn,0,SEEK_SET);
   if (fread (mem, 1, flen, fIn) != flen)
     Error ("Read error!");	 
-  
+
   pos = block = longer = custom = only = dataonly = direct = not_rec;
 
   switch (fformat)
