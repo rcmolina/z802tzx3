@@ -55,10 +55,10 @@ int main (int argc, char *argv[])
 
   if (argc < 2 || argc > 3)
     {
-	printf("%s\n", PROG_VER);
-    printf("\nUsage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas] \n", argv[0]);
-	printf("\n");
-	printf ("options:\n");
+	printf("v%s\n", PROG_VER);
+    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas] \n", argv[0]);
+	//printf("\n");
+	printf("      options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
 	printf("         cc2      colour code format: \\#0nn\\#00n \n");
 	printf("         cc3      colour code format: \\{An} A=i|p|f|b|v|o\n");
