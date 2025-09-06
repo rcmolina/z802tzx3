@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.05"
+#define PROG_VER "1.06"
 #define MAJREV 1        /* Major revision of the format this program supports */
 #define MINREV 13        /* Minor revision -||- */
 
@@ -23,7 +23,7 @@ unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k;
-//char mem7old;
+char memold;
 long flen;
 unsigned char *mem;
 char buf[256];
@@ -33,7 +33,7 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum fflist{unknown, TZX, TAP, SNA, Z80, BAS} fformat = unknown;
+enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
@@ -47,6 +47,7 @@ int DeTokenize(unsigned char *In, int LineLen, unsigned char *Out);
 void ConCat(unsigned char *Out,int *Pos,unsigned char *Text);
 void TZXPROC();
 void TAPPROC();
+int SPPROC();
 int SNAPROC();
 int Z80PROC();
 void BASPROC();
@@ -56,7 +57,7 @@ int main (int argc, char *argv[])
 
   if (argc < 2 || argc > 3)
     {
-    printf ("\nUsage: %s [option] file[.tzx|.tap|.sna|.z80|.bas] \n", argv[0]);
+    printf ("\nUsage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas] \n", argv[0]);
 	printf("\n");
 	printf ("options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
@@ -95,21 +96,36 @@ int main (int argc, char *argv[])
 
   const unsigned char TZXSTART[]="ZXTape!";
   const unsigned char TAPSTART[]={0x13,0x00};
+  const unsigned char SPSTART[]="SP";  
   const unsigned char SNAEXT[]=".SNA";
   const unsigned char Z80EXT[]=".Z80";
-  const unsigned char BASSTART[]="PLUS3DO";
-
-  //mem7old=mem[7]; 
-  mem[7]=0;
+  const unsigned char BASSTART[]="PLUS3DOS";
 
   if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) fformat=SNA;
-  else if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) fformat=Z80;
-  else if (!strcmp((char *)mem, TZXSTART)) fformat=TZX;
-  else if (!strcmp((char *)mem, TAPSTART)) fformat=TAP;
-  else if (!strcmp((char *)mem, BASSTART)) fformat=BAS;
-  else {free(mem); Error ("Unknown ZX file format!");} 
+  else {
+      if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) fformat=Z80; 
+	  else {
+	       memold=mem[2]; mem[2]=0;
+		   if (!strcmp((char *)mem, SPSTART)) fformat=SP;
+		   else {
+		        mem[2]=memold; memold=mem[7]; mem[7]=0;
+				if (!strcmp((char *)mem, TZXSTART)) fformat=TZX;
+				else {
+				     mem[7]=memold; memold=mem[2]; mem[2]=0;
+					 if (!strcmp((char *)mem, TAPSTART)) fformat=TAP;
+					 else {
+					      mem[2]=memold; memold=mem[8]; mem[8]=0;
+						  if (!strcmp((char *)mem, BASSTART)) fformat=BAS;
+						  else { 
+						       free(mem); Error ("Unknown ZX file format!");
+						  }
+					 }
+				}
+		   }
+      }
+  }
 
-  //mem[7]=mem7old;
+  //mem[8]=memold;
   fseek(fIn,0,SEEK_SET);
   if (fread (mem, 1, flen, fIn) != flen)
     Error ("Read error!");	 
@@ -123,6 +139,9 @@ int main (int argc, char *argv[])
 			 break;
 	case TZX: 
 			 TZXPROC();
+			 break;
+	case SP: 
+			 SPPROC();
 			 break;
 	case SNA: 
 			 SNAPROC();
@@ -775,6 +794,57 @@ void TAPPROC()
 		  pos = pos +2 +0x13 +2 +len; // header block length= 2 + 0x13 and data block length= 2 + len
 		  j= pos;
     }
+
+}
+
+int SPPROC()
+{
+	#define HDRLEN 38;
+	int startAddr = Get2(&mem[4]);
+    len = Get2(&mem[2]); if (len == 0) {len = 65536; startAddr=0;}
+	
+    // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
+	pos= 23635 -startAddr +HDRLEN;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    ProgAddr = LineData[0] | LineData[1]<<8;
+
+    if ((ProgAddr < 23296) || (ProgAddr > 65530)){
+        fprintf(stderr,"Invalid [PROG] in system in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
+	pos=23627 - startAddr +HDRLEN;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    VarsAddr = LineData[0] | LineData[1]<<8;
+
+    if ((VarsAddr < 23296) || (VarsAddr > 65530)){
+        fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    ProgLen = VarsAddr -ProgAddr;	//ProgLen= [VARS] - [PROG] = VarsAddr - ProgAddr;
+    //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
+	
+    // seek to PROG area
+	pos=ProgAddr -startAddr +HDRLEN; flen=VarsAddr -startAddr +HDRLEN;	 
+    while (pos < flen) {	
+        LineNum = 256*mem[pos] + mem[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen = mem[pos +2] + 256*mem[pos +3];
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+
+		memcpy(LineData,mem+pos+4 ,LineLen);
+        LineData[LineLen]=0; //Terminate the line data
+
+        DeTokenize(LineData,LineLen,LineText);
+        printf("%d%s\n",LineNum,LineText);
+		
+		pos= pos +2 +2 + LineLen; 	        
+    }
+	printf("\n");
+	return(0);
 
 }
 
