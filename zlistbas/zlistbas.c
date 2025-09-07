@@ -15,7 +15,6 @@
 
 #define PROG_VER "1.07"
 
-
 FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
@@ -66,12 +65,7 @@ int main (int argc, char *argv[])
     exit (0);
     }
 
-  if (argc == 2) 
-    {  
-    //strcpy (buf, argv[1]); 
-    //ChangeFileExtension (buf, "txt");
-	k = 1;
-    }
+  if (argc == 2) k = 1;
   else{
     strcpy (buf, argv[1]);
     if (!strcmp(buf, "cc1")) colorcode=cc1;
@@ -99,7 +93,7 @@ int main (int argc, char *argv[])
   const unsigned char SNAEXT[]=".SNA";
   const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DOS";
-
+/*
   char go= 1;
   if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) {fformat= SNA; go= 0;}
   if (go) if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) {fformat= Z80; go= 0;} else {memold= mem[2]; mem[2]= 0;}
@@ -107,6 +101,14 @@ int main (int argc, char *argv[])
   if (go) if (!strcmp((char *)mem, TZXSTART)) {fformat= TZX; mem[7]= memold; go= 0;} else {mem[7]= memold; memold= mem[2]; mem[2]=0;}
   if (go) if (!strcmp((char *)mem, TAPSTART)) {fformat= TAP; mem[2]= memold; go= 0;} else {mem[2]= memold; memold= mem[8]; mem[8]=0;}
   if (go) if (!strcmp((char *)mem, BASSTART)) {fformat= BAS; mem[8]= memold; go= 0;} else {mem[8]= memold; free(mem); Error ("Unknown ZX file format!");}
+*/
+  if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)SNAEXT, 4)) fformat= SNA;
+  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)Z80EXT, 4)) fformat= Z80;
+  else if (!hdrcmp((char *)mem, (char *)SPSTART, 2)) fformat= SP;
+  else if (!hdrcmp((char *)mem, (char *)TZXSTART, 7)) fformat= TZX;
+  else if (!hdrcmp((char *)mem, (char *)TAPSTART, 2)) fformat= TAP;
+  else if (!hdrcmp((char *)mem, (char *)BASSTART, 8)) fformat= BAS;
+  else {free(mem); Error ("Unknown ZX file format!");}
 
   fseek(fIn,0,SEEK_SET);
   if (fread (mem, 1, flen, fIn) != flen)
@@ -138,6 +140,22 @@ int main (int argc, char *argv[])
 	
   //system("pause");
   return (0);
+}
+
+int hdrcmp (char *mem, char *hdrstart, int len)
+{
+
+  int i= 0;
+  while (i< len)
+  {
+    //printf("mem[%d]=%d hdrstart[%d]=%d\n", i, mem[i], i, hdrstart[i]);
+    if (mem[0] == '.') mem[i]= toupper(mem[i]);
+	if (mem[i] != hdrstart[i]) return 1;
+
+	i++;
+  }
+
+  return 0;
 }
 
 /* Changes the File Extension of String *str to *ext */
