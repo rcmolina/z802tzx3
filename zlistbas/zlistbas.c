@@ -1,6 +1,6 @@
 /******************************************************************************
 **
-** zlistbas
+** zlistbas  rcmolina@gmail.com
 **                                                                       
 *******************************************************************************/
 
@@ -13,14 +13,13 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.07"
+#define PROG_VER "1.08"
 
 FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k;
-char memold;
 long flen;
 unsigned char *mem;
 char buf[256];
@@ -30,7 +29,7 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS} fformat = unknown;
+enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, P, P81} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
@@ -48,6 +47,8 @@ int SPPROC();
 int SNAPROC();
 int Z80PROC();
 void BASPROC();
+int PPROC();
+int P81PROC();
 
 int main (int argc, char *argv[])
 {
@@ -55,8 +56,7 @@ int main (int argc, char *argv[])
   if (argc < 2 || argc > 3)
     {
 	printf("v%s\n", PROG_VER);
-    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas] \n", argv[0]);
-	//printf("\n");
+    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.p|.p81] \n", argv[0]);
 	printf("      options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
 	printf("         cc2      colour code format: \\#0nn\\#00n \n");
@@ -93,17 +93,13 @@ int main (int argc, char *argv[])
   const unsigned char SNAEXT[]=".SNA";
   const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DOS";
-/*
-  char go= 1;
-  if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, SNAEXT)) {fformat= SNA; go= 0;}
-  if (go) if (!strcasecmp((char *)argv[k] +strlen(argv[k]) -4, Z80EXT)) {fformat= Z80; go= 0;} else {memold= mem[2]; mem[2]= 0;}
-  if (go) if (!strcmp((char *)mem, SPSTART)) {fformat= SP; mem[2]= memold; go= 0;} else {mem[2]= memold; memold= mem[7]; mem[7]= 0;}
-  if (go) if (!strcmp((char *)mem, TZXSTART)) {fformat= TZX; mem[7]= memold; go= 0;} else {mem[7]= memold; memold= mem[2]; mem[2]=0;}
-  if (go) if (!strcmp((char *)mem, TAPSTART)) {fformat= TAP; mem[2]= memold; go= 0;} else {mem[2]= memold; memold= mem[8]; mem[8]=0;}
-  if (go) if (!strcmp((char *)mem, BASSTART)) {fformat= BAS; mem[8]= memold; go= 0;} else {mem[8]= memold; free(mem); Error ("Unknown ZX file format!");}
-*/
+  const unsigned char PEXT[]=".P";
+  const unsigned char P81EXT[]=".P81";  
+
   if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)SNAEXT, 4)) fformat= SNA;
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)Z80EXT, 4)) fformat= Z80;
+  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -2, (char *)PEXT, 2)) fformat= P;
+  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)P81EXT, 4)) fformat= P81;  
   else if (!hdrcmp((char *)mem, (char *)SPSTART, 2)) fformat= SP;
   else if (!hdrcmp((char *)mem, (char *)TZXSTART, 7)) fformat= TZX;
   else if (!hdrcmp((char *)mem, (char *)TAPSTART, 2)) fformat= TAP;
@@ -132,10 +128,16 @@ int main (int argc, char *argv[])
 			 break;
 	case Z80: 
 			 Z80PROC();
-			 break;	   	   	    
+			 break;	    
 	case BAS: 
 			 BASPROC();
-			 break;    
+			 break;
+	case P: 
+			 PPROC();
+			 break;
+	case P81: 
+			 P81PROC();
+			 break;	   	   	    
 	}
 	
   //system("pause");
@@ -194,15 +196,811 @@ void Error (char *errstr)
   exit (0);
 }
 
+/*////////////////////////////////////////////////////////////////////////////
+  DeTokenizeP()
 
-/*****************************************************************************
+  'In' should point to a string containing tokenized ZX81 text.
+  'LineLen' should contain the length of the Input data in characters.
+  'Out' This is the output expanded ascii text
+////////////////////////////////////////////////////////////////////////////*/
+int DeTokenizeP(unsigned char *In,int LineLen,unsigned char *Out)
+{
+    int i = 0, o = 0;
+
+    char cc1f[]= "\\{nn}\\{n}";
+	char cc2f[]= "\\#0nn\\#00n";
+	char cc3f[]= "\\{An}";
+	char cc4f[]= "\";CHR$ nn;CHR$ n;\"";
+	char *cc;
+
+    for(i=0;i<LineLen;i++)
+    {
+        switch (In[i])
+        {
+		case 0:
+		    ConCat(Out,&o," ");
+			break;
+		case 1:
+		    ConCat(Out,&o,"\\' ");
+			break;
+		case 2:
+		    ConCat(Out,&o,"\\ '");
+			break;
+		case 3:
+		    ConCat(Out,&o,"\\''");
+			break;
+		case 4:
+		    ConCat(Out,&o,"\\. ");
+			break;
+		case 5:
+		    ConCat(Out,&o,"\\. ");
+			break;
+		case 6:
+		    ConCat(Out,&o,"\\.'");
+			break;
+		case 7:
+		    ConCat(Out,&o,"\\:'");
+			break;
+		case 8:
+		    ConCat(Out,&o,"\\!:");
+			break;
+		case 9:
+		    ConCat(Out,&o,"\\!.");
+			break;
+		case 10:
+		    ConCat(Out,&o,"\\!'");
+			break;
+		case 11:
+		    ConCat(Out,&o,"\"");
+			break;
+		case 12:
+		    ConCat(Out,&o,"\\\\");
+			break;
+		case 13:
+		    ConCat(Out,&o,"$");
+			break;              
+		case 14:
+		    ConCat(Out,&o,":");
+			break;
+		case 15:
+		    ConCat(Out,&o,"?");
+			break;
+		case 16:
+		    ConCat(Out,&o,"(");
+			break;
+		case 17:
+		    ConCat(Out,&o,")");
+			break;
+		case 18:
+		    ConCat(Out,&o,">");
+			break;
+		case 19:
+		    ConCat(Out,&o,"<");
+			break;
+		case 20:
+		    ConCat(Out,&o,"=");
+			break;
+		case 21:
+		    ConCat(Out,&o,"+");
+			break;
+		case 22:
+		    ConCat(Out,&o,"-");
+			break;
+		case 23:
+		    ConCat(Out,&o,"*");
+			break;
+		case 24:
+		    ConCat(Out,&o,"/");
+			break;
+		case 25:
+		    ConCat(Out,&o,";");
+			break;
+		case 26:
+		    ConCat(Out,&o,",");
+			break;
+		case 27:
+		    ConCat(Out,&o,".");
+			break;
+		case 28:
+		    ConCat(Out,&o,"0");
+			break;
+		case 29:
+		    ConCat(Out,&o,"1");
+			break;
+		case 30:
+		    ConCat(Out,&o,"2");
+			break;
+		case 31:
+		    ConCat(Out,&o,"3");
+			break;
+		case 32:
+		    ConCat(Out,&o,"4");
+			break;
+		case 33:
+		    ConCat(Out,&o,"5");
+			break;
+		case 34:
+		    ConCat(Out,&o,"6");
+			break;
+		case 35:
+		    ConCat(Out,&o,"7");
+			break;
+		case 36:
+		    ConCat(Out,&o,"8");
+			break;
+		case 37:
+		    ConCat(Out,&o,"9");
+			break;
+		case 38:
+		    ConCat(Out,&o,"A");
+			break;
+		case 39:
+		    ConCat(Out,&o,"B");
+			break;
+		case 40:
+		    ConCat(Out,&o,"C");
+			break;
+		case 41:
+		    ConCat(Out,&o,"D");
+			break;
+		case 42:
+		    ConCat(Out,&o,"E");
+			break;
+		case 43:
+		    ConCat(Out,&o,"F");
+			break;
+		case 44:
+		    ConCat(Out,&o,"G");
+			break;
+		case 45:
+		    ConCat(Out,&o,"H");
+			break;
+		case 46:
+		    ConCat(Out,&o,"I");
+			break;
+		case 47:
+		    ConCat(Out,&o,"J");
+			break;
+		case 48:
+		    ConCat(Out,&o,"K");
+			break;
+		case 49:
+		    ConCat(Out,&o,"L");
+			break;
+		case 50:
+		    ConCat(Out,&o,"M");
+			break;
+		case 51:
+		    ConCat(Out,&o,"N");
+			break;
+		case 52:
+		    ConCat(Out,&o,"O");
+			break;
+		case 53:
+		    ConCat(Out,&o,"P");
+			break;
+		case 54:
+		    ConCat(Out,&o,"Q");
+			break;
+		case 55:
+		    ConCat(Out,&o,"R");
+			break;
+		case 56:
+		    ConCat(Out,&o,"S");
+			break;
+		case 57:
+		    ConCat(Out,&o,"T");
+			break;
+		case 58:
+		    ConCat(Out,&o,"U");
+			break;
+		case 59:
+		    ConCat(Out,&o,"V");
+			break;
+		case 60:
+		    ConCat(Out,&o,"W");
+			break;
+		case 61:
+		    ConCat(Out,&o,"X");
+			break;
+		case 62:
+		    ConCat(Out,&o,"Y");
+			break;
+		case 63:
+		    ConCat(Out,&o,"Z");
+			break;
+		case 64:
+		    ConCat(Out,&o,"RND");
+			break;
+		case 65:
+		    ConCat(Out,&o,"INKEY$ ");
+			break;
+		case 66:
+		    ConCat(Out,&o,"PI");
+			break;
+		case 67:
+		    i++;
+			break;
+		case 68:
+		    i++;
+			break;
+		case 69:
+		    i++;
+			break;
+		case 70:
+		    i++;
+			break;
+		case 71:
+		    i++;
+			break;
+		case 72:
+		    i++;
+			break;
+		case 73:
+		    i++;
+			break;
+		case 74:
+		    i++;
+			break;
+		case 75:
+		    i++;
+			break;
+		case 76:
+		    i++;
+			break;
+		case 77:
+		    i++;
+			break;
+		case 78:
+		    i++;
+			break;
+		case 79:
+		    i++;
+			break;
+		case 80:
+		    i++;
+			break;
+		case 81:
+		    i++;
+			break;
+		case 82:
+		    i++;
+			break;
+		case 83:
+		    i++;
+			break;
+		case 84:
+		    i++;
+			break;
+		case 85:
+		    i++;
+			break;
+		case 86:
+		    i++;
+			break;
+		case 87:
+		    i++;
+			break;
+		case 88:
+		    i++;
+			break;
+		case 89:
+		    i++;
+			break;
+		case 90:
+		    i++;
+			break;
+		case 91:
+		    i++;
+			break;
+		case 92:
+		    i++;
+			break;
+		case 93:
+		    i++;
+			break;
+		case 94:
+		    i++;
+			break;
+		case 95:
+		    i++;
+			break;
+		case 96:
+		    i++;
+			break;
+		case 97:
+		    i++;
+			break;
+		case 98:
+		    i++;
+			break;
+		case 99:
+		    i++;
+			break;
+		case 100:
+		    i++;
+			break;
+		case 101:
+		    i++;
+			break;
+		case 102:
+		    i++;
+			break;
+		case 103:
+		    i++;
+			break;
+		case 104:
+		    i++;
+			break;
+		case 105:
+		    i++;
+			break;
+		case 106:
+		    i++;
+			break;
+		case 107:
+		    i++;
+			break;
+		case 108:
+		    i++;
+			break;
+		case 109:
+		    i++;
+			break;
+		case 110:
+		    i++;
+			break;
+		case 111:
+		    i++;
+			break;
+		case 112:
+		    i++;
+			break;
+		case 113:
+		    i++;
+			break;
+		case 114:
+		    i++;
+			break;
+		case 115:
+		    i++;
+			break;
+		case 116:
+		    i++;
+			break;
+		case 117:
+		    i++;
+			break;
+		case 118:
+			i++;	// 0x76 is end of line mark
+			break;
+		case 119:
+		    i++;
+			break;
+		case 120:
+		    i++;
+			break;
+		case 121:
+		    i++;
+			break;
+		case 122:
+		    i++;
+			break;
+		case 123:
+		    i++;
+			break;
+		case 124:
+		    i++;
+			break;
+		case 125:
+		    i++;
+			break;
+		case 126:
+		    i++;
+			break;
+		case 127:
+		    i++;
+			break;
+		case 128:
+		    ConCat(Out,&o,"\\::");
+			break;
+		case 129:
+		    ConCat(Out,&o,"\\.:");
+			break;
+		case 130:
+		    ConCat(Out,&o,"\\:.");
+			break;
+		case 131:
+		    ConCat(Out,&o,"\\..");
+			break;
+		case 132:
+		    ConCat(Out,&o,"\\':");
+			break;
+		case 133:
+		    ConCat(Out,&o,"\\ :");
+			break;
+		case 134:
+		    ConCat(Out,&o,"\\'.");
+			break;
+		case 135:
+		    ConCat(Out,&o,"\\ .");
+			break;
+		case 136:
+		    ConCat(Out,&o,"\\|:");
+			break;
+		case 137:
+		    ConCat(Out,&o,"\\|.");
+			break;
+		case 138:
+		    ConCat(Out,&o,"\\|'");
+			break;
+		case 139:
+		    ConCat(Out,&o,"\\\"");
+			break;
+		case 140:
+		    ConCat(Out,&o,"\\@");
+			break;
+		case 141:
+		    ConCat(Out,&o,"\\$");
+			break;
+		case 142:
+		    ConCat(Out,&o,"\\:");
+			break;
+		case 143:
+		    ConCat(Out,&o,"\\?");
+			break;
+		case 144:
+		    ConCat(Out,&o,"\\(");
+			break;
+		case 145:
+		    ConCat(Out,&o,"\\)");
+			break;
+		case 146:
+		    ConCat(Out,&o,"\\>");
+			break;
+		case 147:
+		    ConCat(Out,&o,"\\<");
+			break;
+		case 148:
+		    ConCat(Out,&o,"\\=");
+			break;
+		case 149:
+		    ConCat(Out,&o,"\\+");
+			break;
+		case 150:
+		    ConCat(Out,&o,"\\-");
+			break;
+		case 151:
+		    ConCat(Out,&o,"\\*");
+			break;
+		case 152:
+		    ConCat(Out,&o,"\\/");
+			break;
+		case 153:
+		    ConCat(Out,&o,"\\;");
+			break;
+		case 154:
+		    ConCat(Out,&o,"\\,");
+			break;
+		case 155:
+		    ConCat(Out,&o,"\\.");
+			break;
+		case 156:
+		    ConCat(Out,&o,"\\0");
+			break;
+		case 157:
+		    ConCat(Out,&o,"\\1");
+			break;
+		case 158:
+		    ConCat(Out,&o,"\\2");
+			break;
+		case 159:
+		    ConCat(Out,&o,"\\3");
+			break;
+		case 160:
+		    ConCat(Out,&o,"\\4");
+			break;
+		case 161:
+		    ConCat(Out,&o,"\\5");
+			break;
+		case 162:
+		    ConCat(Out,&o,"\\6");
+			break;
+		case 163:
+		    ConCat(Out,&o,"\\7");
+			break;
+		case 164:
+		    ConCat(Out,&o,"\\8");
+			break;
+		case 165:
+		    ConCat(Out,&o,"\\9");
+			break;
+		case 166:
+		    ConCat(Out,&o,"a");
+			break;
+		case 167:
+		    ConCat(Out,&o,"b");
+			break;
+		case 168:
+		    ConCat(Out,&o,"c");
+			break;
+		case 169:
+		    ConCat(Out,&o,"d");
+			break;
+		case 170:
+		    ConCat(Out,&o,"e");
+			break;
+		case 171:
+		    ConCat(Out,&o,"f");
+			break;
+		case 172:
+		    ConCat(Out,&o,"g");
+			break;
+		case 173:
+		    ConCat(Out,&o,"h");
+			break;
+		case 174:
+		    ConCat(Out,&o,"i");
+			break;
+		case 175:
+		    ConCat(Out,&o,"j");
+			break;
+		case 176:
+		    ConCat(Out,&o,"k");
+			break;
+		case 177:
+		    ConCat(Out,&o,"l");
+			break;
+		case 178:
+		    ConCat(Out,&o,"m");
+			break;
+		case 179:
+		    ConCat(Out,&o,"n");
+			break;
+		case 180:
+		    ConCat(Out,&o,"o");
+			break;
+		case 181:
+		    ConCat(Out,&o,"p");
+			break;
+		case 182:
+		    ConCat(Out,&o,"q");
+			break;
+		case 183:
+		    ConCat(Out,&o,"r");
+			break;
+		case 184:
+		    ConCat(Out,&o,"s");
+			break;
+		case 185:
+		    ConCat(Out,&o,"t");
+			break;
+		case 186:
+		    ConCat(Out,&o,"u");
+			break;
+		case 187:
+		    ConCat(Out,&o,"v");
+			break;
+		case 188:
+		    ConCat(Out,&o,"w");
+			break;
+		case 189:
+		    ConCat(Out,&o,"x");
+			break;
+		case 190:
+		    ConCat(Out,&o,"y");
+			break;
+		case 191:
+		    ConCat(Out,&o,"z");
+			break;
+		case 192:
+		    ConCat(Out,&o,"`");
+			break;
+		case 193:
+		    ConCat(Out,&o,"AT ");
+			break;
+		case 194:
+		    ConCat(Out,&o,"TAB ");
+			break;
+		case 195:
+		    i++;
+			break;
+		case 196:
+		    ConCat(Out,&o,"CODE ");
+			break;
+		case 197:
+		    ConCat(Out,&o,"VAL ");
+			break;
+		case 198:
+		    ConCat(Out,&o,"LEN ");
+			break;
+		case 199:
+		    ConCat(Out,&o,"SIN ");
+			break;
+		case 200:
+		    ConCat(Out,&o,"COS ");
+			break;
+		case 201:
+		    ConCat(Out,&o,"TAN ");
+			break;
+		case 202:
+		    ConCat(Out,&o,"ASN ");
+			break;
+		case 203:
+		    ConCat(Out,&o,"ACS ");
+			break;
+		case 204:
+		    ConCat(Out,&o,"ATN ");
+			break;
+		case 205:
+		    ConCat(Out,&o,"LN ");
+			break;
+		case 206:
+		    ConCat(Out,&o,"EXP ");
+			break;
+		case 207:
+		    ConCat(Out,&o,"INT ");
+			break;
+		case 208:
+		    ConCat(Out,&o,"SQR ");
+			break;
+		case 209:
+		    ConCat(Out,&o,"SGN ");
+			break;
+		case 210:
+		    ConCat(Out,&o,"ABS ");
+			break;
+		case 211:
+		    ConCat(Out,&o,"PEEK ");
+			break;
+		case 212:
+		    ConCat(Out,&o,"USR ");
+			break;
+		case 213:
+		    ConCat(Out,&o,"STR$ ");
+			break;
+		case 214:
+		    ConCat(Out,&o,"CHR$ ");
+			break;
+		case 215:
+		    ConCat(Out,&o,"NOT ");
+			break;
+		case 216:
+		    ConCat(Out,&o,"**");
+			break;
+		case 217:
+		    ConCat(Out,&o," OR ");
+			break;
+		case 218:
+		    ConCat(Out,&o," AND ");
+			break;
+		case 219:
+		    ConCat(Out,&o,"<=");
+			break;
+		case 220:
+		    ConCat(Out,&o,">=");
+			break;
+		case 221:
+		    ConCat(Out,&o,"<>");
+			break;
+		case 222:
+		    ConCat(Out,&o," THEN");
+			break;
+		case 223:
+		    ConCat(Out,&o," TO ");
+			break;
+		case 224:
+		    ConCat(Out,&o," STEP ");
+			break;
+		case 225:
+		    ConCat(Out,&o," LPRINT ");
+			break;
+		case 226:
+		    ConCat(Out,&o," LLIST ");
+			break;
+		case 227:
+		    ConCat(Out,&o," STOP");
+			break;
+		case 228:
+		    ConCat(Out,&o," SLOW");
+			break;
+		case 229:
+		    ConCat(Out,&o," FAST");
+			break;
+		case 230:
+		    ConCat(Out,&o," NEW");
+			break;
+		case 231:
+		    ConCat(Out,&o," SCROLL");
+			break;
+		case 232:
+		    ConCat(Out,&o," CONT ");
+			break;
+		case 233:
+		    ConCat(Out,&o," DIM ");
+			break;
+		case 234:
+		    ConCat(Out,&o," REM ");
+			break;
+		case 235:
+		    ConCat(Out,&o," FOR ");
+			break;
+		case 236:
+		    ConCat(Out,&o," GOTO ");
+			break;
+		case 237:
+		    ConCat(Out,&o," GOSUB ");
+			break;
+		case 238:
+		    ConCat(Out,&o," INPUT ");
+			break;
+		case 239:
+		    ConCat(Out,&o," LOAD ");
+			break;
+		case 240:
+		    ConCat(Out,&o," LIST ");
+			break;
+		case 241:
+		    ConCat(Out,&o," LET ");
+			break;
+		case 242:
+		    ConCat(Out,&o," PAUSE ");
+			break;
+		case 243:
+		    ConCat(Out,&o," NEXT ");
+			break;
+		case 244:
+		    ConCat(Out,&o," POKE ");
+			break;
+		case 245:
+		    ConCat(Out,&o," PRINT ");
+			break;
+		case 246:
+		    ConCat(Out,&o," PLOT ");
+			break;
+		case 247:
+		    ConCat(Out,&o," RUN ");
+			break;
+		case 248:
+		    ConCat(Out,&o," SAVE ");
+			break;
+		case 249:
+		    ConCat(Out,&o," RAND ");
+			break;
+		case 250:
+		    ConCat(Out,&o," IF ");
+			break;
+		case 251:
+		    ConCat(Out,&o," CLS");
+			break;
+		case 252:
+		    ConCat(Out,&o," UNPLOT ");
+			break;
+		case 253:
+		    ConCat(Out,&o," CLEAR");
+			break;
+		case 254:
+		    ConCat(Out,&o," RETURN");
+			break;
+		case 255:
+		    ConCat(Out,&o," COPY");
+			break;	   	   
+        default:
+            if (In[i] >= 32) Out[o++] = In[i];
+        }
+    }
+
+    Out[o]=0;
+    return strlen(Out);
+}
+
+/*////////////////////////////////////////////////////////////////////////////
   DeTokenize()
 
   'In' should point to a string containing tokenized ZX Spectrum text.
   'LineLen' should contain the length of the Input data in characters.
-  The expanded Text will be placed in 'Out', which must be large enough
-  to contain the full text.
-*****************************************************************************/
+  'Out' This is the output expanded ascii text
+////////////////////////////////////////////////////////////////////////////*/
 int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
@@ -1098,5 +1896,91 @@ void BASPROC()
 		pos= pos +2 +2 +LineLen;      
     }
 	if (mem[0x0F]==0) printf("\n");
+}
+
+int PPROC()
+{
+    const int HDRLEN= 0;
+	const int STARTADDR= 16393;	// 0x4009
+
+    ProgAddr = 16509;
+
+    // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
+	pos= 16396 -STARTADDR +HDRLEN;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    VarsAddr= LineData[0] |LineData[1]<<8;
+/*
+    if ((VarsAddr < 23296) ||(VarsAddr > 65530)){
+        fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    ProgLen= VarsAddr -ProgAddr;	//ProgLen= [VARS] - [PROG] = VarsAddr - ProgAddr;
+    //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
+*/	  
+    // seek to PROG area
+	flen= VarsAddr -STARTADDR +HDRLEN;
+	pos= ProgAddr -STARTADDR +HDRLEN;
+    while (pos < flen) {	
+        LineNum = 256*mem[pos] +mem[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen = mem[pos +2] +256*mem[pos +3];
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+
+		memcpy(LineData, mem +pos +4 ,LineLen);
+        LineData[LineLen]= 0; //Terminate the line data
+
+        DeTokenizeP(LineData, LineLen, LineText);
+        printf("%d%s\n",LineNum,  LineText);
+		
+		pos= pos +2 +2 +LineLen; 	       
+    }
+	printf("\n");
+	return(0);
+
+}
+
+int P81PROC()
+{
+    const int HDRLEN= strlen(mem);
+	const int STARTADDR= 16393;	// 0x4009
+
+    ProgAddr = 16509;
+
+    // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
+	pos= 16396 -STARTADDR +HDRLEN;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    VarsAddr= LineData[0] |LineData[1]<<8;
+/*
+    if ((VarsAddr < 23296) ||(VarsAddr > 65530)){
+        fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
+        return(4);
+    }
+
+    ProgLen= VarsAddr -ProgAddr;	//ProgLen= [VARS] - [PROG] = VarsAddr - ProgAddr;
+    //printf("ProgAddr=%d VarsAddr=%d ProgLen=%d\n", ProgAddr, VarsAddr, ProgLen);
+*/	  
+    // seek to PROG area
+	flen= VarsAddr -STARTADDR +HDRLEN;
+	pos= ProgAddr -STARTADDR +HDRLEN;
+    while (pos < flen) {	
+        LineNum = 256*mem[pos] +mem[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen = mem[pos +2] +256*mem[pos +3];
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+
+		memcpy(LineData, mem +pos +4 ,LineLen);
+        LineData[LineLen]= 0; //Terminate the line data
+
+        DeTokenizeP(LineData, LineLen, LineText);
+        printf("%d%s\n",LineNum,  LineText);
+		
+		pos= pos +2 +2 +LineLen; 	       
+    }
+	printf("\n");
+	return(0);
+
 }
 
