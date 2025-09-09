@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.08"
+#define PROG_VER "1.09"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -109,7 +109,7 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, P, P81} fformat = unknown;
+enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, P, P81, T81} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
@@ -136,7 +136,7 @@ int main (int argc, char *argv[])
   if (argc < 2 || argc > 3)
     {
 	printf("v%s\n", PROG_VER);
-    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.p|.p81] \n", argv[0]);
+    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.p|.p81|.t81] \n", argv[0]);
 	printf("      options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
 	printf("         cc2      colour code format: \\#0nn\\#00n \n");
@@ -174,12 +174,14 @@ int main (int argc, char *argv[])
   const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DOS";
   const unsigned char PEXT[]=".P";
-  const unsigned char P81EXT[]=".P81";  
+  const unsigned char P81EXT[]=".P81";
+  const unsigned char T81START[]="EO81";
 
   if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)SNAEXT, 4)) fformat= SNA;
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)Z80EXT, 4)) fformat= Z80;
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -2, (char *)PEXT, 2)) fformat= P;
-  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)P81EXT, 4)) fformat= P81;  
+  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)P81EXT, 4)) fformat= P81;
+  else if (!hdrcmp((char *)mem, (char *)T81START, 4)) fformat= T81;  
   else if (!hdrcmp((char *)mem, (char *)SPSTART, 2)) fformat= SP;
   else if (!hdrcmp((char *)mem, (char *)TZXSTART, 7)) fformat= TZX;
   else if (!hdrcmp((char *)mem, (char *)TAPSTART, 2)) fformat= TAP;
@@ -217,7 +219,10 @@ int main (int argc, char *argv[])
 			 break;
 	case P81: 
 			 P81PROC();
-			 break;	   	   	    
+			 break;
+	case T81: 
+			 T81PROC();
+			 break;	   	   	       	   	    
 	}
 	
   //system("pause");
@@ -1261,6 +1266,44 @@ int PPROC()
 int P81PROC()
 {
     const int HDRLEN= strlen(mem);
+	const int STARTADDR= 16393;	// 0x4009
+
+    ProgAddr = 16509;
+
+    // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
+	pos= 16396 -STARTADDR +HDRLEN;
+	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
+    VarsAddr= LineData[0] |LineData[1]<<8;
+
+    inFirstLineREM = (256*mem[0] +mem[1] == REM_code);	
+	
+    // seek to PROG area
+	flen= VarsAddr -STARTADDR +HDRLEN;
+	pos= ProgAddr -STARTADDR +HDRLEN;
+    while (pos < flen) {	
+        LineNum = 256*mem[pos] +mem[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen = mem[pos +2] +256*mem[pos +3];
+		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
+
+		memcpy(LineData, mem +pos +4 ,LineLen);
+        LineData[LineLen]= 0; //Terminate the line data
+
+        printf("%4d", LineNum);
+        DeTokenizeP(LineLen);
+        inFirstLineREM = 0;
+			
+		pos= pos +2 +2 +LineLen; 	       
+    }
+	printf("\n");
+	return(0);
+
+}
+
+int T81PROC()
+{
+    const int HDRLEN= 52 + strlen(mem+52);
 	const int STARTADDR= 16393;	// 0x4009
 
     ProgAddr = 16509;
