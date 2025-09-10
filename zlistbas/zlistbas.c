@@ -13,47 +13,13 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.09"
+#define PROG_VER "1.10"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
 #define QUOTE_code 11
 #define NUM_code 126
 #define REM_code 234
-
-/* Block Graphics escapes used by Zmakebas:
- * 
- * "\' "  001 Top-left corner
- * "\ '"  002 Top-right corner
- * "\''"  003 Top half
- * "\. "  004 Bottom-left corner
- * "\: "  005 Left half
- * "\.'"  006 Bottom-left, top-right corners
- * "\:'"  007 Bottom-right empty
- * "\!:"  008 "Gray" solid
- * "\!."  009 "Gray" bottom half
- * "\!'"  010 "Gray top half
- * "\::"  128 Solid (inverse space)
- * "\.:"  129 Top-left bank (inverse of "\' ")
- * "\:."  130 Top-right blank (inverse of "\ '")
- * "\.."  131 Bottom half (inverse of "\''")
- * "\':"  132 Bottom-left blank (inverse of "\. ")
- * "\ :"  133 Right half (inverse of "\: ")
- * "\'."  134 Top-left, bottom-right (inverse of "\.'")
- * "\ ."  135 Bottom-right corner (inverse of "\:'")
- * "\|:"  136 Inverse "gray" (inverse pixels of "\!:")
- * "\|."  137 Black top, gray bottom (inverse of "\!.")
- * "\|'"  138 Black bottom, gray top (inverse of "\!'")
- * 
- * Special Characters:
- * 
- * "\\"   012 Pound Sterling symbol (its not # since that is a comment char)
- * "\@"   140 Inverse Pound Sterling symbol
- * "`"    192 Backtick for the Quote Image "" character (has no inverse)
- * Lowercase letters for inverse letters
- * Backslash before other characters for their inverse versions
- *  
- */
 
 #define NAK "#" // Not A Kharacter
 
@@ -115,6 +81,18 @@ enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
 int Get4 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256) + (mem[3] * 256 * 256 * 256));}
+int GetT81L (unsigned char *mem)
+{
+int i= 0, j= 0, len= 0;
+int pow10(int j) { int k= 1; while (j > 0) {k= k*10 ; j--;} return (k);}
+while (mem[i]) i++;
+while (i>0) {
+  len=len +(mem[i-1] -48) * pow10(j);
+  i--;
+  j++;
+}
+return len;
+}
 
 long FileLength (FILE* fh);
 void Error (char *errstr);
@@ -314,7 +292,7 @@ for (f = 0; f < linelen - 1; f++)
 
         else
             printf("%s", x); /* Print translated char */
-        }
+		}
     else
         printf("%s", x); /* Print translated char */
     }
@@ -834,10 +812,10 @@ void ConCat(unsigned char *Out,int *Pos,unsigned char *Text)
 
 void TZXPROC()
 {
-    pos = 10;
+    pos = 0x0A;
     j = pos;
-    while (pos < flen){	
-	     switch (mem[10])
+    while (pos < flen){
+	     switch (mem[pos])
 	        {
 	        case 0x10:
 			    ProgLen = Get2(&mem[pos +1 +2 +2 +0x10]);
@@ -883,6 +861,33 @@ void TZXPROC()
 				j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  +tzx length(3) + len
 
 			    break;
+		    case 0x19:
+				len = Get4(&mem[pos +1]);	//Data Block length
+				int delta= 0x58 +strlen(mem +pos +1 +4 +0x58);
+				int inDFILEpos= pos +1 +4 +delta +mem[pos +1 +4 +delta +3] + 256*mem[pos +1 +4 +delta +4] -16393;
+			    while (1 +4 +delta +0x74 +j <  inDFILEpos) { //pos +1 +4 +len
+					LineNum = 256*mem[1 +4 + delta +0x74 +j] + mem[1 +4 + delta +0x74 +1 +j];
+			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
+			        LineLen = mem[1 +4 + delta +0x74 +2 +j] + 256*mem[1 +4 + delta +0x74 +3 +j];
+					//if (LineLen > ProgLen -5) LineLen =ProgLen -5;	// flag(1) +LineNum(2) +LineLen(2)
+
+					memcpy(LineData,mem +1 +4 + delta +0x74 +4 +j , LineLen);
+			        LineData[LineLen]= 0; // Terminate the line data
+					
+                    printf("%4d", LineNum);
+                    DeTokenizeP(LineLen);
+                    inFirstLineREM = 0;
+					j= j +2 +2 +LineLen;      
+			    }
+				printf("\n");
+				pos = pos +1 +4 +len;
+				j= pos;
+
+			    break;
+			case 0x30:
+			    pos= pos + 1 +1 + mem[pos+1];
+				j= pos;
+				break;
 		    default:
 		        break;
 		    }
@@ -1303,39 +1308,47 @@ int P81PROC()
 
 int T81PROC()
 {
-    const int HDRLEN= 52 + strlen(mem+52);
-	const int STARTADDR= 16393;	// 0x4009
+    int hdrlen;
+	int STARTADDR= 16393;	// 0x4009
 
     ProgAddr = 16509;
 
-    // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
-	pos= 16396 -STARTADDR +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
-
     inFirstLineREM = (256*mem[0] +mem[1] == REM_code);	
 	
-    // seek to PROG area
-	flen= VarsAddr -STARTADDR +HDRLEN;
-	pos= ProgAddr -STARTADDR +HDRLEN;
-    while (pos < flen) {	
-        LineNum = 256*mem[pos] +mem[pos +1];   
-        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+    pos= 4;	   
+	j= pos;
 
-		LineLen = mem[pos +2] +256*mem[pos +3];
-		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
-
-		memcpy(LineData, mem +pos +4 ,LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
-
-        printf("%4d", LineNum);
-        DeTokenizeP(LineLen);
-        inFirstLineREM = 0;
+    int ProgAddrFpos;
+	int inDFILEpos;
+    while (pos < flen){
+          len= GetT81L(&mem[pos +0x20]);	      //Data Block length
+		  //printf("pos=0x%X mem[0x%X]=0x%X len=%d\n\n", pos, pos+0x20, mem[pos+0x20], len);
+		  hdrlen= 48 + strlen(mem+48 +pos);
+          // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
+		  inDFILEpos= mem[16396 -STARTADDR +hdrlen + pos] + 256*mem[16396 +1 -STARTADDR +hdrlen + pos] -STARTADDR +hdrlen +pos;
+          //printf("inDFILEpos=0x%X\n", inDFILEpos);
+		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
+	        ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
+            //printf("ProgAArFpos=0x%X\n",ProgAddrFpos); 
+			LineNum = 256*mem[ProgAddrFpos] +mem[ProgAddrFpos +1];
+			if (LineNum > 16384) break;
 			
-		pos= pos +2 +2 +LineLen; 	       
+			LineLen = mem[ProgAddrFpos +2] +256*mem[ProgAddrFpos +3];
+            //if (LineLen > ProgLen -5) LineLen= ProgLen -5;	// flag(1) +LineNum(2) +LineLen(2)
+	   
+			memcpy(LineData, mem + ProgAddrFpos +4 ,LineLen);
+	        LineData[LineLen]= 0; // Terminate the line data
+	
+            printf("%4d", LineNum);
+            DeTokenizeP(LineLen);
+            inFirstLineREM = 0;
+			j= j +2 +2 +LineLen;
+				
+          }
+		  printf("\n");
+		  pos = pos +0x30 +len;	  // blklen before name (0x30) + len ¿+pause (0x30)?
+          if (!strcmp(mem +pos,"<Silence>")) pos= pos +0x30;
+		  j= pos;
     }
-	printf("\n");
-	return(0);
-
 }
 
