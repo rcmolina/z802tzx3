@@ -99,7 +99,7 @@ void Error (char *errstr);
 void ChangeFileExtension (char *str, char *ext);
 int DeTokenize(unsigned char *In, int LineLen, unsigned char *Out);
 void ConCat(unsigned char *Out,int *Pos,unsigned char *Text);
-void TZXPROC();
+int TZXPROC();
 void TAPPROC();
 int SPPROC();
 int SNAPROC();
@@ -204,6 +204,9 @@ int main (int argc, char *argv[])
 	}
 	
   //system("pause");
+  fclose (fIn);
+  free (mem); 
+    
   return (0);
 }
 
@@ -810,7 +813,7 @@ void ConCat(unsigned char *Out,int *Pos,unsigned char *Text)
     *Pos += n;
 }
 
-void TZXPROC()
+int TZXPROC()
 {
     pos = 0x0A;
     j = pos;
@@ -901,7 +904,9 @@ void TZXPROC()
 				
 				break;	   	   	   	   
 		    default:
-			
+                fprintf(stderr,"tzx block 0x%X not supported yet!.\n", mem[pos]);
+                return(2);
+					 	 	 
 		        break;
 		    }
     }	
