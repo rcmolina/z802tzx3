@@ -865,6 +865,31 @@ int TZXPROC()
 				j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  +tzx length(3) + len
 
 			    break;
+			case 0x12:
+			    pos= pos +1 +2 +2;
+				j= pos;
+				
+				break;
+			case 0x13:
+			    pos= pos +1 +1 +2*mem[pos +1];
+				j= pos;
+				
+				break;
+			case 0x14:
+			    pos= pos +1 +2 +2 +1 +2 +3 +Get3(&mem[pos +1 +2 +2 +1 +2]);
+				j= pos;
+				
+				break;
+			case 0x15:
+			    pos= pos +1 +2 +2 +1 +3 +Get3(&mem[pos +1 +2 +2 +1]);
+				j= pos;
+				
+				break;
+			case 0x18:
+			    pos= pos +1 +4 +Get4(&mem[pos +1]);
+				j= pos;
+				
+				break;
 		    case 0x19:
 				len = Get4(&mem[pos +1]);	//Data Block length
 				int delta= 0x58 +strlen(mem +pos +1 +4 +0x58);
@@ -889,22 +914,27 @@ int TZXPROC()
 				
 			    break;
 			case 0x20:
-			    pos= pos + 1 +2;
+			    pos= pos +1 +2;
 				j= pos;
 				
 				break;
+			case 0x2A:
+			    pos= pos +1 +4;
+				j= pos;
+				
+				break;	   	   	   	   
 			case 0x30:
-			    pos= pos + 1 +1 + mem[pos+1];
+			    pos= pos +1 +1 +mem[pos +1];
 				j= pos;
 				
 				break;
 			case 0x32:
-			    pos= pos + 1 +2 + mem[pos+1] + 256*mem[pos+2];
+			    pos= pos + 1 +2 + Get2(&mem[pos +1]);
 				j= pos;
 				
 				break;	   	   	   	   
 		    default:
-                fprintf(stderr,"tzx block 0x%X not supported yet!.\n", mem[pos]);
+                fprintf(stderr,"tzx block 0x%X not supported yet!\n", mem[pos]);
                 return(2);
 					 	 	 
 		        break;
