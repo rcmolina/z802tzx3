@@ -933,6 +933,11 @@ int TZXPROC()
 				j= pos;
 				
 				break;	   	   	   	   
+			case 0x4B:
+			    pos= pos +1 +4 +Get4(&mem[pos +1]);
+				j= pos;
+				
+				break;
 		    default:
                 fprintf(stderr,"tzx block 0x%X not supported yet!\n", mem[pos]);
                 return(2);
