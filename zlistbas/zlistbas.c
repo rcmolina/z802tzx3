@@ -845,25 +845,31 @@ int TZXPROC()
 	
 			    break;
 		    case 0x11:
-			    ProgLen = Get2(&mem[pos +1 +13 +2 +3 +0x10]);
-				len = Get3(&mem[pos +1 +13 +2 +3 +0x13 +1 +13 +2]);	   //Data Block length
-			    while ((19 +0x13 +19 +1 + j <  pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +ProgLen) && (mem[pos +19 +1]== 0)) {
-					LineNum = 256*mem[19 +0x13 +19 +1 +j] + mem[19 +0x13 +19 +2 +j];
-			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
-			
-			        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
-					if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
-					memcpy(LineData,mem+19 +0x13 +19 +5 +j, LineLen);
-			        LineData[LineLen]= 0; // Terminate the line data
-					
-			        DeTokenize(LineData, LineLen, LineText);
-					printf("%d%s\n",LineNum, LineText);
-					j= j +2 +2 +LineLen;      
-			    }
-				if (mem[pos +19 +1]== 0) printf("\n");
-				pos = pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len; // header block length= id(1) +extra(13) +pause(2) +tzx length(3) +0x13
-				j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  +tzx length(3) + len
-
+			    if ((Get3(&mem[pos +1 +13 +2]) == 0x13) && (mem[pos +19 +1]== 0)) {
+				    ProgLen = Get2(&mem[pos +1 +13 +2 +3 +0x10]);
+					len = Get3(&mem[pos +1 +13 +2 +3 +0x13 +1 +13 +2]);	   //Data Block length
+				    while ((19 +0x13 +19 +1 + j <  pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +ProgLen) && (mem[pos +19 +1]== 0)) {
+						LineNum = 256*mem[19 +0x13 +19 +1 +j] + mem[19 +0x13 +19 +2 +j];
+				        if (LineNum > 16384) break; //se salta la zona de vars tras programa
+				
+				        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
+						if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
+						memcpy(LineData,mem+19 +0x13 +19 +5 +j, LineLen);
+				        LineData[LineLen]= 0; // Terminate the line data
+						
+				        DeTokenize(LineData, LineLen, LineText);
+						printf("%d%s\n",LineNum, LineText);
+						j= j +2 +2 +LineLen;      
+				    }
+					if (mem[pos +19 +1]== 0) printf("\n");
+					pos = pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len; // header block length= id(1) +extra(13) +pause(2) +tzx length(3) +0x13
+					j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  +tzx length(3) + len
+                }
+				else {
+				    pos = pos +1 +13 +2 +3 +Get3(&mem[pos +1 +13 +2]);
+					j= pos;
+				}
+				
 			    break;
 			case 0x12:
 			    pos= pos +1 +2 +2;
