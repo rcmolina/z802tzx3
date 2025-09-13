@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.10"
+#define PROG_VER "1.11"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -815,6 +815,7 @@ void TZXPROC()
     pos = 0x0A;
     j = pos;
     while (pos < flen){
+		 //printf("pos=0x%X mem[pos]=0x%X\n", pos, mem[pos]);
 	     switch (mem[pos])
 	        {
 	        case 0x10:
@@ -882,13 +883,25 @@ void TZXPROC()
 				printf("\n");
 				pos = pos +1 +4 +len;
 				j= pos;
-
+				
 			    break;
+			case 0x20:
+			    pos= pos + 1 +2;
+				j= pos;
+				
+				break;
 			case 0x30:
 			    pos= pos + 1 +1 + mem[pos+1];
 				j= pos;
+				
 				break;
+			case 0x32:
+			    pos= pos + 1 +2 + mem[pos+1] + 256*mem[pos+2];
+				j= pos;
+				
+				break;	   	   	   	   
 		    default:
+			
 		        break;
 		    }
     }	
