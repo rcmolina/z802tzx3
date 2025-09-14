@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.11"
+#define PROG_VER "1.12"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -840,10 +840,8 @@ int TZXPROC()
 					j= j +2 +2 +LineLen;      
 			    }
 				if (mem[pos +5 +1]== 0) printf("\n");
-				pos = pos +1 +2 +2 +0x13 +1 +2 +2 +len; // header block length= id(1) +pause(2) +tzx block length(2) +0x13
-				j= pos;	 								 // data block length=  id(1) +pause(2)  +tzx block length(2) +len	  
-	
-			    break;
+				pos= j= pos +1 +2 +2 +0x13 +1 +2 +2 +len; // header block length= id(1) +pause(2) +tzx block length(2) +0x13
+				break;    	 	 	 	 	 	 	 	  // data block length=  id(1) +pause(2)  +tzx block length(2) +len	   
 		    case 0x11:
 			    if ((Get3(&mem[pos +1 +13 +2]) == 0x13) && (mem[pos +19 +1]== 0)) {
 				    ProgLen = Get2(&mem[pos +1 +13 +2 +3 +0x10]);
@@ -862,40 +860,23 @@ int TZXPROC()
 						j= j +2 +2 +LineLen;      
 				    }
 					if (mem[pos +19 +1]== 0) printf("\n");
-					pos = pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len; // header block length= id(1) +extra(13) +pause(2) +tzx length(3) +0x13
+					pos= pos +1 +13 +2 +3 +0x13 +1 +13 +2 +3 +len; // header block length= id(1) +extra(13) +pause(2) +tzx length(3) +0x13
 					j= pos;	 	 	 	 	 	 	 	             // data block length=  id(1) +extra (13) +pause(2)  +tzx length(3) + len
                 }
 				else {
-				    pos = pos +1 +13 +2 +3 +Get3(&mem[pos +1 +13 +2]);
-					j= pos;
+				    pos =j= pos +1 +13 +2 +3 +Get3(&mem[pos +1 +13 +2]);
 				}
-				
 			    break;
 			case 0x12:
-			    pos= pos +1 +2 +2;
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +2 +2; break;			
 			case 0x13:
-			    pos= pos +1 +1 +2*mem[pos +1];
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +1 +2*mem[pos +1]; break;
 			case 0x14:
-			    pos= pos +1 +2 +2 +1 +2 +3 +Get3(&mem[pos +1 +2 +2 +1 +2]);
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +2 +2 +1 +2 +3 +Get3(&mem[pos +1 +2 +2 +1 +2]); break;
 			case 0x15:
-			    pos= pos +1 +2 +2 +1 +3 +Get3(&mem[pos +1 +2 +2 +1]);
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +2 +2 +1 +3 +Get3(&mem[pos +1 +2 +2 +1]); break;
 			case 0x18:
-			    pos= pos +1 +4 +Get4(&mem[pos +1]);
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +4 +Get4(&mem[pos +1]); break;
 		    case 0x19:
 				len = Get4(&mem[pos +1]);	//Data Block length
 				int delta= 0x58 +strlen(mem +pos +1 +4 +0x58);
@@ -915,39 +896,47 @@ int TZXPROC()
 					j= j +2 +2 +LineLen;      
 			    }
 				printf("\n");
-				pos = pos +1 +4 +len;
-				j= pos;
-				
+				pos= j= pos +1 +4 +len;
 			    break;
 			case 0x20:
-			    pos= pos +1 +2;
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +2; break;
+			case 0x21:
+			    pos= j= pos +1 +1 +mem[pos +1]; break;
+			case 0x22:
+			    pos= j= pos +1; break;
+			case 0x23:
+			    pos= j= pos +1 +2; break;
+			case 0x24:
+			    pos= j= pos +1 +2; break;
+			case 0x25:
+			    pos= j= pos +1; break;
+			case 0x26:
+			    pos= j= pos +1 +2 +2*Get2(&mem[pos +1]); break;
+			case 0x27:
+			    pos= j= pos +1; break;
+			case 0x28:
+			    pos= j= pos +1 +2 +Get2(&mem[pos +1]); break;
 			case 0x2A:
-			    pos= pos +1 +4;
-				j= pos;
-				
-				break;	   	   	   	   
+			    pos= j= pos +1 +4; break;
+			case 0x2B:
+			    pos= j= pos +1 +4 +1; break;	  	  	  
 			case 0x30:
-			    pos= pos +1 +1 +mem[pos +1];
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +1 +mem[pos +1]; break;
+			case 0x31:
+			    pos= j= pos +1 +1 +1 +mem[pos +1 +1]; break;
 			case 0x32:
-			    pos= pos + 1 +2 + Get2(&mem[pos +1]);
-				j= pos;
-				
-				break;	   	   	   	   
+			    pos= j= pos + 1 +2 +Get2(&mem[pos +1]); break;
+			case 0x33:
+			    pos= j= pos +1 +1 +3*mem[pos +1 +1]; break;
+			case 0x35:
+			    pos= j= pos + 1 +0x10 +4 +Get4(&mem[pos +1 +0x10]); break;
 			case 0x4B:
-			    pos= pos +1 +4 +Get4(&mem[pos +1]);
-				j= pos;
-				
-				break;
+			    pos= j= pos +1 +4 +Get4(&mem[pos +1]); break;
+			case 0x5A:
+			    pos= j= pos +1 +9; break;
 		    default:
                 fprintf(stderr,"tzx block 0x%X not supported yet!\n", mem[pos]);
-                return(2);
-					 	 	 
+                return(2);	  	  
 		        break;
 		    }
     }	
