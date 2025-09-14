@@ -1154,16 +1154,16 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	
     if (ver<2) {
          buf1= (unsigned char*)malloc(49152L+256);
-         buf2= (unsigned char*)malloc(49152L+256);
+         buf3= (unsigned char*)malloc(49152L+256);
 		 
 		 //i=fread(buf1,1,49152L+256,fIn);
 		 pos=30; memcpy(buf1, mem +pos ,flen -pos);
 		    
 		 //if (buffer.rr_bit7&32) unpack(buf1,buf2,49152L);
-		 if (mem[12]&32) {unpack(buf1, buf2, 49152L); buf3= buf2; flen= 49152;}         //Block of data is compressed, bit5 ON
-		 else buf3= buf1;
+		 if (mem[12]&32) {unpack(buf1, buf3, 49152L); free(buf1); flen= 49152;}         //Block of data is compressed, bit5 ON
+		 else {free(buf3); buf3= buf1;}
 
-		 //printblock(buf2,49152L,16384)	 	 // buf2
+		 //printblock(buf3,49152L,16384)	 	 // buf3
 		 pos= flen;
 		 
 	} else {
@@ -1179,8 +1179,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
             //i=fread(buf1,1,blockhdr.length,fin);
 			
 		    if (len == -1) {
-				memcpy(buf1, mem +pos +3, 16384);
-				buf2= buf1;
+				memcpy(buf2, mem +pos +3, 16384);
 		    }					
 	 	    else {
 				memcpy(buf1, mem +pos +3, len);
@@ -1200,6 +1199,8 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 			pos= pos +3 +len;
 	     }
 		 flen= 49152;
+		 free(buf1);
+		 free(buf2);
 		 //printblock(buf3,49152,0)
     }
 
@@ -1248,6 +1249,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 		pos= pos +2 +2 +LineLen; 	       
     }
 	printf("\n");
+	free(buf3);
 	return(0);	      	   
 
 
