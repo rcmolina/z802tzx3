@@ -1124,7 +1124,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
      pos= 0;
      //fread(&buffer,1,30,fin);
 	 ver= 0;
-	 if (mem[6]==0) {		// pc = for z80 ver >=2
+	 if (mem[6]==0) {		// pc =0 for z80 ver >=2
 		 //fread(&(buffer.length), 1, 2, fin); // z80 version
 		 len= Get2(&mem[30]);
 		 switch (len) {
@@ -1155,16 +1155,21 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
     if (ver<2) {
          buf1= (unsigned char*)malloc(49152L+256);
          buf3= (unsigned char*)malloc(49152L+256);
-		 
-		 //i=fread(buf1,1,49152L+256,fIn);
-		 pos=30; memcpy(buf1, mem +pos ,flen -pos);
-		    
+		 //i=fread(buf1,1,49152L+256,fIn);	      
+
 		 //if (buffer.rr_bit7&32) unpack(buf1,buf2,49152L);
-		 if (mem[12]&32) {unpack(buf1, buf3, 49152L); free(buf1); flen= 49152;}         //Block of data is compressed, bit5 ON
-		 else {free(buf3); buf3= buf1;}
+		 if (mem[12]&32) {
+             memcpy(buf1, mem +pos ,flen -pos);
+		     unpack(buf1, buf3, 49152L);
+			 flen= 49152;         //Block of data is compressed, bit5 ON
+		 }
+		 else {
+		     memcpy(buf3, mem +pos ,flen -pos);
+		 }
 
 		 //printblock(buf3,49152L,16384)	 	 // buf3
 		 pos= flen;
+		 free(buf1);
 		 
 	} else {
 	     buf1= (unsigned char*)malloc(16384+256);
