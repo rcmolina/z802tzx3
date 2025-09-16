@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.12"
+#define PROG_VER "1.13"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -287,17 +287,32 @@ for (f = 0; f < linelen - 1; f++)
         f += 5;  /* avoid inline FP numbers - but ok for REMs */
 
     else if ( (keyword == REM_code && f > 0) || inQuotes)
-        {
-        if ((!onlyFirstLineREM || inFirstLineREM) &&
-                ((strcmp(x, NAK) == 0) || ((strlen(x) > 1) && (x[0] != '\\') && (x[0]!='`'))) )
-
-            printf("\\{%d}", c); /* Print escaped as char code */
-
-        else
-            printf("%s", x); /* Print translated char */
+    {
+		if (colorcode == 1) {
+	        if (inFirstLineREM) printf("\\%02X", *x); // Eightyone b81 format
+	        else printf("%s", x);
 		}
+		else if (colorcode == 2) {
+	        if (!onlyFirstLineREM && strcmp(x, NAK) == 0) printf("\\%02X", *x);
+	        else printf("%s", x);
+		}
+		else if (colorcode == 3) {
+	        if ((!onlyFirstLineREM || inFirstLineREM) && strcmp(x, NAK) == 0) printf("\\%02X", *x);
+	        else printf("%s", x);
+		}
+		else if (colorcode == 4) {
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\%02X", *x);
+	        else printf("%s", x);
+		}	     	   
+		else {	// colorcolode == 0
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) )
+	            printf("\\{%d}", c); // Print escaped as char code
+	        else
+	            printf("%s", x); // Print translated char
+		}	    		
+	}	 	 
     else
-        printf("%s", x); /* Print translated char */
+        printf("%s", x); // Print translated char
     }
 printf("\n");
 }
@@ -1297,11 +1312,10 @@ int PPROC()
 	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
     VarsAddr= LineData[0] |LineData[1]<<8;
 
-    inFirstLineREM = (256*mem[0] +mem[1] == REM_code);	
-	
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
+    inFirstLineREM = (mem[pos +4] == REM_code);
     while (pos < flen) {	
         LineNum = 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
@@ -1334,12 +1348,11 @@ int P81PROC()
 	pos= 16396 -STARTADDR +HDRLEN;
 	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
     VarsAddr= LineData[0] |LineData[1]<<8;
-
-    inFirstLineREM = (256*mem[0] +mem[1] == REM_code);	
 	
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
+    inFirstLineREM = (mem[pos +4] == REM_code);	
     while (pos < flen) {	
         LineNum = 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
@@ -1368,20 +1381,23 @@ int T81PROC()
 
     ProgAddr = 16509;
 
-    inFirstLineREM = (256*mem[0] +mem[1] == REM_code);	
-	
     pos= 4;	   
 	j= pos;
 
     int ProgAddrFpos;
 	int inDFILEpos;
     while (pos < flen){
+
           len= GetT81L(&mem[pos +0x20]);	      //Data Block length
 		  //printf("pos=0x%X mem[0x%X]=0x%X len=%d\n\n", pos, pos+0x20, mem[pos+0x20], len);
-		  hdrlen= 48 + strlen(mem+48 +pos);
+
+		  hdrlen= 48 + strlen(mem +48 +pos);
+
           // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 		  inDFILEpos= mem[16396 -STARTADDR +hdrlen + pos] + 256*mem[16396 +1 -STARTADDR +hdrlen + pos] -STARTADDR +hdrlen +pos;
           //printf("inDFILEpos=0x%X\n", inDFILEpos);
+
+		  inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
 		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
 	        ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
             //printf("ProgAArFpos=0x%X\n",ProgAddrFpos); 
