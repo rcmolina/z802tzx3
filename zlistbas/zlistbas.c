@@ -81,6 +81,7 @@ enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
 int Get4 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256) + (mem[3] * 256 * 256 * 256));}
+int zlen(unsigned char *mem) {int i= 0; while (mem[i]<128) i++; return(i+1); }
 int GetT81L (unsigned char *mem)
 {
 int i= 0, j= 0, len= 0;
@@ -894,7 +895,7 @@ int TZXPROC()
 			    pos= j= pos +1 +4 +Get4(&mem[pos +1]); break;
 		    case 0x19:
 				len = Get4(&mem[pos +1]);	//Data Block length
-				int delta= 0x58 +strlen(mem +pos +1 +4 +0x58);
+				int delta= 0x58 +zlen(mem +pos +1 +4 +0x58);
 				int inDFILEpos= pos +1 +4 +delta +mem[pos +1 +4 +delta +3] + 256*mem[pos +1 +4 +delta +4] -16393;
 			    while (1 +4 +delta +0x74 +j <  inDFILEpos) { //pos +1 +4 +len
 					LineNum = 256*mem[1 +4 + delta +0x74 +j] + mem[1 +4 + delta +0x74 +1 +j];
@@ -1339,7 +1340,7 @@ int PPROC()
 
 int P81PROC()
 {
-    const int HDRLEN= strlen(mem);
+    const int HDRLEN= zlen(mem);
 	const int STARTADDR= 16393;	// 0x4009
 
     ProgAddr = 16509;
@@ -1391,7 +1392,7 @@ int T81PROC()
           len= GetT81L(&mem[pos +0x20]);	      //Data Block length
 		  //printf("pos=0x%X mem[0x%X]=0x%X len=%d\n\n", pos, pos+0x20, mem[pos+0x20], len);
 
-		  hdrlen= 48 + strlen(mem +48 +pos);
+		  hdrlen= 48 + zlen(mem +48 +pos);
 
           // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 		  inDFILEpos= mem[16396 -STARTADDR +hdrlen + pos] + 256*mem[16396 +1 -STARTADDR +hdrlen + pos] -STARTADDR +hdrlen +pos;
@@ -1400,7 +1401,8 @@ int T81PROC()
 		  inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
 		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
 	        ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
-            //printf("ProgAArFpos=0x%X\n",ProgAddrFpos); 
+            //printf("ProgAArFpos=0x%X\n",ProgAddrFpos);
+			
 			LineNum = 256*mem[ProgAddrFpos] +mem[ProgAddrFpos +1];
 			if (LineNum > 16384) break;
 			
