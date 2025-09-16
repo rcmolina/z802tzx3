@@ -26,8 +26,8 @@ int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preser
 
 char *charset_zx80zmb[] =
 {
-/* 000-009 */ " ","\"","\\ '","\\''","\\. ","\\: ","\\.'","\\:'","\\!:","\\!.",
-/* 010-019 */ "\\!'","\"","\\\\","$",":","?","(",")",">","<",
+/* 000-009 */ " ","\"","\\: ","\\''","\\' ","\\ '","\\. ","\\:'","\\.'","\\!:",
+/* 010-019 */ "\\!.","\\!'","\\\\","$",":","?","(",")",">","<",
 /* 020-029 */ "=","+","-","*","/",";",",",".","0","1",
 /* 030-039 */ "2","3","4","5","6","7","8","9","A","B",
 /* 040-049 */ "C","D","E","F","G","H","I","J","K","L",
@@ -38,8 +38,8 @@ char *charset_zx80zmb[] =
 /* 090-099 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
 /* 100-109 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
 /* 110-119 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
-/* 120-129 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,"\\::","\\.:",
-/* 130-139 */ "\\:.","\\..","\\':","\\ :","\\'.", "\\ .","\\|:","\\|.","\\|'","\\\"",
+/* 120-129 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,"\\::","\\\"",
+/* 130-139 */ "\\ :","\\..","\\.:","\\:.","\\':", "\\ .","\\'.","\\|:","\\|.","\\|'",
 /* 140-149 */ "\\@","\\$","\\:","\\?","\\(","\\)","\\>","\\<","\\=","\\+",
 /* 150-159 */ "\\-","\\*","\\/","\\;","\\,","\\.","\\0","\\1","\\2","\\3",
 /* 160-169 */ "\\4","\\5","\\6","\\7","\\8","\\9","a","b","c","d",
@@ -53,7 +53,7 @@ char *charset_zx80zmb[] =
 		" POKE "," INPUT "," RANDOMIZE ",
 /* 240-249 */ " LET ",NAK,NAK," NEXT "," PRINT ",
 		NAK," NEW"," RUN "," STOP "," CONTINUE ",
-/* 250-255 */ " IF "," GOSUB "," LOAD"," CLEAR"," REM",NAK
+/* 250-255 */ " IF "," GOSUB "," LOAD"," CLEAR"," REM ",NAK
 };
 
 char *charset_zx81zmb[] =
@@ -114,7 +114,7 @@ enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
 int Get4 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256) + (mem[3] * 256 * 256 * 256));}
-int zlen(unsigned char *mem) {int i= 0; while (mem[i]<128) i++; return(i+1); }
+int zlen(unsigned char *mem) {int i= 0;if (mem[i]==0) return(0);while (mem[i]<128) i++; return(i+1);}
 int zlinelen(unsigned char *mem) {int i= 0; while (mem[i] != 0x76) i++; return(i+1); }
 int GetT81L (unsigned char *mem)
 {
@@ -1457,7 +1457,7 @@ int T81PROC()
     while (pos < flen){
           len= GetT81L(&mem[pos +0x20]);	      //Data Block length
 		  //printf("pos=0x%X mem[0x%X]=0x%X len=%d\n\n", pos, pos+0x20, mem[pos+0x20], len);
-		  hdrlen= 48 + strlen(mem+48 +pos);
+		  hdrlen= 48 + zlen(mem+48 +pos);
           // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 		  inDFILEpos= mem[16396 -STARTADDR +hdrlen + pos] + 256*mem[16396 +1 -STARTADDR +hdrlen + pos] -STARTADDR +hdrlen +pos;
           //printf("inDFILEpos=0x%X\n", inDFILEpos);
