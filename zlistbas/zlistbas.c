@@ -13,7 +13,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define PROG_VER "1.13"
+#define PROG_VER "1.14"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -23,7 +23,39 @@ int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preser
 
 #define NAK "#" // Not A Kharacter
 
-char *charset_zmb[] =
+char *charset_zx80zmb[] =
+{
+/* 000-009 */ " ","\"","\\ '","\\''","\\. ","\\: ","\\.'","\\:'","\\!:","\\!.",
+/* 010-019 */ "\\!'","\"","\\\\","$",":","?","(",")",">","<",
+/* 020-029 */ "=","+","-","*","/",";",",",".","0","1",
+/* 030-039 */ "2","3","4","5","6","7","8","9","A","B",
+/* 040-049 */ "C","D","E","F","G","H","I","J","K","L",
+/* 050-059 */ "M","N","O","P","Q","R","S","T","U","V",
+/* 060-069 */ "W","X","Y","Z",NAK,NAK,NAK,NAK,NAK,NAK,
+/* 070-079 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 080-089 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 090-099 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 100-109 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 110-119 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 120-129 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,"\\::","\\.:",
+/* 130-139 */ "\\:.","\\..","\\':","\\ :","\\'.", "\\ .","\\|:","\\|.","\\|'","\\\"",
+/* 140-149 */ "\\@","\\$","\\:","\\?","\\(","\\)","\\>","\\<","\\=","\\+",
+/* 150-159 */ "\\-","\\*","\\/","\\;","\\,","\\.","\\0","\\1","\\2","\\3",
+/* 160-169 */ "\\4","\\5","\\6","\\7","\\8","\\9","a","b","c","d",
+/* 170-179 */ "e","f","g","h","i","j","k","l","m","n",
+/* 180-189 */ "o","p","q","r","s","t","u","v","w","x",
+/* 190-199 */ "y","z",NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 200-209 */ NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,NAK,
+/* 210-219 */ NAK,NAK,"\""," THEN"," TO ",";",",",")","(","NOT",
+/* 220-229 */ "-","+","*","/"," AND "," OR ","**","=",">","<",
+/* 230-239 */ " LIST"," RETURN"," CLS "," DIM "," SAVE "," FOR "," GOTO ",
+		" POKE "," INPUT "," RANDOMIZE ",
+/* 240-249 */ " LET ",NAK,NAK," NEXT "," PRINT ",
+		NAK," NEW"," RUN "," STOP "," CONTINUE ",
+/* 250-255 */ " IF "," GOSUB "," LOAD"," CLEAR"," REM",NAK
+};
+
+char *charset_zx81zmb[] =
 {
 /* 000-009 */ " ","\\' ","\\ '","\\''","\\. ","\\: ","\\.'","\\:'","\\!:","\\!.",
 /* 010-019 */ "\\!'","\"","\\\\","$",":","?","(",")",">","<",
@@ -59,7 +91,7 @@ char *charset_zmb[] =
 /* 250-255 */ " IF "," CLS"," UNPLOT "," CLEAR"," RETURN"," COPY"
 };
 
-char **charset = charset_zmb;
+char **charset = charset_zx81zmb;
 
 FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
@@ -75,13 +107,14 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, P, P81, T81} fformat = unknown;
+enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
 int Get4 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256) + (mem[3] * 256 * 256 * 256));}
 int zlen(unsigned char *mem) {int i= 0; while (mem[i]<128) i++; return(i+1); }
+int zlinelen(unsigned char *mem) {int i= 0; while (mem[i] != 0x76) i++; return(i+1); }
 int GetT81L (unsigned char *mem)
 {
 int i= 0, j= 0, len= 0;
@@ -106,6 +139,7 @@ int SPPROC();
 int SNAPROC();
 int Z80PROC();
 void BASPROC();
+int OPROC();
 int PPROC();
 int P81PROC();
 
@@ -115,7 +149,7 @@ int main (int argc, char *argv[])
   if (argc < 2 || argc > 3)
     {
 	printf("v%s\n", PROG_VER);
-    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.p|.p81|.t81] \n", argv[0]);
+    printf("   Usage: %s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.o|.p|.p81|.t81] \n", argv[0]);
 	printf("      options:\n");
 	printf("         cc1      colour code format: \\{nn}\\{n} \n");
 	printf("         cc2      colour code format: \\#0nn\\#00n \n");
@@ -152,12 +186,14 @@ int main (int argc, char *argv[])
   const unsigned char SNAEXT[]=".SNA";
   const unsigned char Z80EXT[]=".Z80";
   const unsigned char BASSTART[]="PLUS3DOS";
+  const unsigned char OEXT[]=".O";  
   const unsigned char PEXT[]=".P";
   const unsigned char P81EXT[]=".P81";
   const unsigned char T81START[]="EO81";
 
   if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)SNAEXT, 4)) fformat= SNA;
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)Z80EXT, 4)) fformat= Z80;
+  else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -2, (char *)OEXT, 2)) fformat= O;  
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -2, (char *)PEXT, 2)) fformat= P;
   else if (!hdrcmp((char *)argv[k] +strlen(argv[k]) -4, (char *)P81EXT, 4)) fformat= P81;
   else if (!hdrcmp((char *)mem, (char *)T81START, 4)) fformat= T81;  
@@ -193,6 +229,9 @@ int main (int argc, char *argv[])
 	case BAS: 
 			 BASPROC();
 			 break;
+	case O: 
+			 OPROC();
+			 break;	   	   	    
 	case P: 
 			 PPROC();
 			 break;
@@ -997,8 +1036,7 @@ int SPPROC()
 	
     // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
 	pos= 23635 -startAddr +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    ProgAddr= LineData[0] |LineData[1]<<8;
+    ProgAddr= Get2(&mem[pos]);
 
     if ((ProgAddr < 23296) ||(ProgAddr > 65530)){
         fprintf(stderr,"Invalid [PROG] in system in system variable area, does not contain a BASIC program.\n");
@@ -1007,8 +1045,7 @@ int SPPROC()
 
     // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
 	pos= 23627 -startAddr +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
+    VarsAddr= Get2(&mem[pos]);
 
     if ((VarsAddr < 23296) ||(VarsAddr > 65530)){
         fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
@@ -1053,8 +1090,7 @@ int SNAPROC()
 
     // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
 	pos= 23635 -STARTADDR +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    ProgAddr= LineData[0] |LineData[1]<<8;
+    ProgAddr= Get2(&mem[pos]);
 
     if ((ProgAddr < 23296) ||(ProgAddr > 65530)){
         fprintf(stderr,"Invalid [PROG] in system in system variable area, does not contain a BASIC program.\n");
@@ -1063,8 +1099,7 @@ int SNAPROC()
 
     // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
 	pos= 23627 -STARTADDR +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
+    VarsAddr= Get2(&mem[pos]);
 
     if ((VarsAddr < 23296) ||(VarsAddr > 65530)){
         fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
@@ -1230,8 +1265,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 	
     // Get the [PROG] system variable (PEEK 23635+256*PEEK 23636)
 	pos= 23635 -STARTADDR +HDRLEN;
-	LineData[0]= buf3[pos]; LineData[1]= buf3[pos+1];
-    ProgAddr= LineData[0] |LineData[1]<<8;
+    ProgAddr= Get2(&buf3[pos]);
 
     if ((ProgAddr < 23296) || (ProgAddr > 65530)){
         fprintf(stderr,"Invalid [PROG] in system variable area, does not contain a BASIC program.\n");
@@ -1240,8 +1274,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
 
     // Get the [VARS] system variable (PEEK 23627+256*PEEK 23628)
 	pos= 23627 -STARTADDR +HDRLEN;
-	LineData[0]= buf3[pos]; LineData[1]= buf3[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
+    VarsAddr= Get2(&buf3[pos]);
 
     if ((VarsAddr < 23296) ||(VarsAddr > 65530)){
         fprintf(stderr,"Invalid [VARS] in system variable area, does not contain a BASIC program.\n");
@@ -1301,6 +1334,41 @@ void BASPROC()
 	if (mem[0x0F]==0) printf("\n");
 }
 
+int OPROC()
+{
+    charset = charset_zx80zmb;
+    const int HDRLEN= 0;
+	const int STARTADDR= 16384;	// 0x4000
+
+    ProgAddr = 16424;
+
+    // Get the [VARS] system variable (PEEK 16392+256*PEEK 16393)
+	pos= 16392 -STARTADDR +HDRLEN;
+    VarsAddr= Get2(&mem[pos]);
+
+    // seek to PROG area
+	flen= VarsAddr -STARTADDR +HDRLEN;
+	pos= ProgAddr -STARTADDR +HDRLEN;
+    inFirstLineREM = (mem[pos +2] == REM_code);
+    while (pos < flen) {	
+        LineNum= 256*mem[pos] +mem[pos +1];   
+        if (LineNum > 16384) break;   //se salta la zona de vars tras programa
+
+		LineLen= zlinelen(mem +pos +2);
+		memcpy(LineData, mem +pos +2 ,LineLen);
+        LineData[LineLen]= 0; //Terminate the line data
+
+        printf("%4d", LineNum);
+        DeTokenizeP(LineLen);
+        inFirstLineREM = 0;
+			
+		pos= pos +2 +LineLen; 	        
+    }
+	printf("\n");
+	return(0);
+
+}
+
 int PPROC()
 {
     const int HDRLEN= 0;
@@ -1310,8 +1378,7 @@ int PPROC()
 
     // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 	pos= 16396 -STARTADDR +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
+    VarsAddr= Get2(&mem[pos]);
 
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
@@ -1347,8 +1414,7 @@ int P81PROC()
 
     // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 	pos= 16396 -STARTADDR +HDRLEN;
-	LineData[0]= mem[pos]; LineData[1]= mem[pos+1];
-    VarsAddr= LineData[0] |LineData[1]<<8;
+    VarsAddr= Get2(&mem[pos]);
 	
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
@@ -1381,28 +1447,27 @@ int T81PROC()
 	int STARTADDR= 16393;	// 0x4009
 
     ProgAddr = 16509;
-
+	
     pos= 4;	   
 	j= pos;
 
     int ProgAddrFpos;
 	int inDFILEpos;
     while (pos < flen){
-
           len= GetT81L(&mem[pos +0x20]);	      //Data Block length
 		  //printf("pos=0x%X mem[0x%X]=0x%X len=%d\n\n", pos, pos+0x20, mem[pos+0x20], len);
-
-		  hdrlen= 48 + zlen(mem +48 +pos);
-
+		  hdrlen= 48 + strlen(mem+48 +pos);
           // Get the [D_FILE] system variable (PEEK 16396+256*PEEK 16397)
 		  inDFILEpos= mem[16396 -STARTADDR +hdrlen + pos] + 256*mem[16396 +1 -STARTADDR +hdrlen + pos] -STARTADDR +hdrlen +pos;
           //printf("inDFILEpos=0x%X\n", inDFILEpos);
 
-		  inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
-		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
-	        ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
-            //printf("ProgAArFpos=0x%X\n",ProgAddrFpos);
+          if (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos)
+		    inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
 			
+		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
+            ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
+            //printf("ProgAArFpos=0x%X\n",ProgAddrFpos);		
+
 			LineNum = 256*mem[ProgAddrFpos] +mem[ProgAddrFpos +1];
 			if (LineNum > 16384) break;
 			
