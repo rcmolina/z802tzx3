@@ -20,6 +20,7 @@ int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preser
 #define QUOTE_code 11
 #define NUM_code 126
 #define REM_code 234
+#define REM_zx80code 254
 
 #define NAK "#" // Not A Kharacter
 
@@ -1349,7 +1350,7 @@ int OPROC()
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
-    inFirstLineREM = (mem[pos +2] == REM_code);
+    inFirstLineREM = (mem[pos +2] == REM_zx80code);
     while (pos < flen) {	
         LineNum= 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
