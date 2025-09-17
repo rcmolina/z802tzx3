@@ -330,19 +330,19 @@ for (f = 0; f < linelen - 1; f++)
     else if ( (keyword == REM_code && f > 0) || inQuotes)
     {
 		if (colorcode == 1) {
-	        if (inFirstLineREM) printf("\\%02X", *x); // Eightyone b81 format
+	        if (inFirstLineREM) printf("\\%02X", c); // Eightyone b81 format
 	        else printf("%s", x);
 		}
 		else if (colorcode == 2) {
-	        if (!onlyFirstLineREM && strcmp(x, NAK) == 0) printf("\\%02X", *x);
+	        if (inFirstLineREM) printf("\\{0x%02X}", c);
 	        else printf("%s", x);
 		}
 		else if (colorcode == 3) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && strcmp(x, NAK) == 0) printf("\\%02X", *x);
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\%02X", c);
 	        else printf("%s", x);
 		}
 		else if (colorcode == 4) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\%02X", *x);
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\{0x%02X}", c);
 	        else printf("%s", x);
 		}	     	   
 		else {	// colorcolode == 0
