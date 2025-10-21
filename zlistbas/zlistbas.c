@@ -26,7 +26,7 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.15"
+#define PROG_VER "1.16"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -112,7 +112,7 @@ unsigned char LineData[65535],LineText[65535];
 
 int k;
 long flen;
-unsigned char *mem;
+unsigned char *mem, *zmem;
 char buf[256];
 long pos, j;
 int len, ProgLen;
@@ -120,7 +120,7 @@ int block;
 int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
-enum fflist{unknown, TZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
+enum fflist{unknown, TZX, RZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
@@ -147,6 +147,7 @@ void ChangeFileExtension (char *str, char *ext);
 int DeTokenize(unsigned char *In, int LineLen, unsigned char *Out);
 void ConCat(unsigned char *Out,int *Pos,unsigned char *Text);
 int TZXPROC();
+int RZXPROC();
 void TAPPROC();
 int SPPROC();
 int SNAPROC();
@@ -163,7 +164,7 @@ int P81PROC();
  *
  * SPDX-License-Identifier: BSD-2-Clause
  */
-/*
+
 #define DEFLATE_ERR_INPUT_LENGTH (-1)
 #define DEFLATE_ERR_METHOD (-2)
 #define DEFLATE_ERR_FDICT (-3)
@@ -680,7 +681,7 @@ int32_t inflate_zlib(const unsigned char *input_buf, uint32_t input_len, unsigne
 
 	return ret;
 }
-*/
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int main (int argc, char *argv[])
@@ -690,7 +691,7 @@ int main (int argc, char *argv[])
     {
     printf("<v%s>: \n", PROG_VER);	 
     printf("%s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.o|.p|.p81|.t81] \n", argv[0]);
-    //printf("%s [option] file[.rzx] \n", argv[0]);	   
+    printf("%s [option] file[.rzx] \n", argv[0]);	 
 	printf("  option \n");
 	printf("    cc1      colour code format: \\{nn}\\{n} \n");
 	printf("    cc2      colour code format: \\#0nn\\#00n \n");
@@ -722,6 +723,7 @@ int main (int argc, char *argv[])
     Error ("Read error!");
 
   const unsigned char TZXSTART[]="ZXTape!";
+  const unsigned char RZXSTART[]="RZX!";  
   const unsigned char TAPSTART[]={0x13,0x00};
   const unsigned char SPSTART[]="SP";  
   const unsigned char SNAEXT[]=".SNA";
@@ -740,6 +742,7 @@ int main (int argc, char *argv[])
   else if (!hdrcmp((char *)mem, (char *)T81START, 4)) fformat= T81;  
   else if (!hdrcmp((char *)mem, (char *)SPSTART, 2)) fformat= SP;
   else if (!hdrcmp((char *)mem, (char *)TZXSTART, 7)) fformat= TZX;
+  else if (!hdrcmp((char *)mem, (char *)RZXSTART, 4)) fformat= RZX;  
   else if (!hdrcmp((char *)mem, (char *)TAPSTART, 2)) fformat= TAP;
   else if (!hdrcmp((char *)mem, (char *)BASSTART, 8)) fformat= BAS;
   else {free(mem); Error ("Unknown ZX file format!");}
@@ -758,6 +761,9 @@ int main (int argc, char *argv[])
 	case TZX: 
 			 TZXPROC();
 			 break;
+	case RZX: 
+			 RZXPROC();
+			 break;	   	   	    
 	case SP: 
 			 SPPROC();
 			 break;
@@ -786,7 +792,7 @@ int main (int argc, char *argv[])
 	
   //system("pause");
   fclose (fIn);
-  free (mem); 
+  //free (mem); 
     
   return (0);
 }
@@ -1535,8 +1541,60 @@ int TZXPROC()
                 return(2);	  	  
 		        break;
 		    }
-    }	
+    }
+	free(mem);	 
 }
+
+int RZXPROC()
+{
+    int uslen;
+    zmem= mem;
+//    if ((zmem = (unsigned char *) malloc (flen)) == NULL) 
+//       Error ("Not enough memory to load input file!");     
+//    memcpy(zmem, mem, flen);
+//	  free(mem);
+				   	    
+    pos= 0x0A;
+    j= pos;
+    while (pos < flen){
+		 //printf("pos=0x%X zmem[pos]=0x%X\n", pos, zmem[pos]);
+	     switch (zmem[pos])
+	        {
+		    case 0x30:
+				len= Get4(&zmem[pos +1]) -1 -4;	  //Data Block length
+				uslen= Get4(&zmem[pos +0x0D]);
+	            if ((mem = (unsigned char *) malloc (uslen)) == NULL) 
+                   Error ("Not enough memory to load uncompressed data!");
+				
+				//printf("len=%d uslen=%d\n",len, uslen);
+			    //printf("zpos5=%d %c %c %c\n", *(zmem+ pos +5), *(zmem +pos +9), *(zmem +pos +10), *(zmem +pos +11));
+				if (zmem[pos +5] & 0x02)
+				   inflate_zlib(zmem +pos +0x11, len -0x0C, mem, uslen);
+				else
+				   memcpy(mem, zmem +pos +0x11, uslen);
+
+                flen= uslen;				   
+                if (!strcasecmp(zmem +pos +9, "Z80")) {
+				   //int32_t out_size= inflate_zlib(zmem +pos +0x11, len -0x0C, mem, uslen);printf("outsize=%d\n", out_size);
+				   //FILE *fho=fopen("test.z80","wb");fwrite(mem, 1, out_size, fho);fclose(fho);	   
+				   Z80PROC();
+				}
+				else if (!strcasecmp(zmem +pos +9, "SNA")) {
+				   SNAPROC();
+                }
+
+                //free(mem);
+				pos= j= pos +1 +4 +len;
+				break;
+		    default:
+			    len = Get4(&zmem[pos +1]) -1 -4;
+                pos= j= pos +1 +4 +len;
+		        break;
+		    }
+    }
+	free(zmem);	  
+}
+
 
 void TAPPROC()
 {
@@ -1566,7 +1624,7 @@ void TAPPROC()
 		  pos = pos +2 +0x13 +2 +len; // header block length= 2 +0x13 and data block length= 2 +len
 		  j= pos;
     }
-
+    free(mem);
 }
 
 int SPPROC()
@@ -1615,6 +1673,7 @@ int SPPROC()
 		pos= pos +2 +2 +LineLen; 	       
     }
 	printf("\n");
+	free(mem);
 	return(0);
 
 }
@@ -1669,13 +1728,13 @@ int SNAPROC()
 		pos= pos +2 +2 +LineLen; 	       
     }
 	printf("\n");
+	free(mem);
 	return(0);
 
 }
 
 int Z80PROC()
 {
-
 #define printblock(buff,len,adr0) \
     for (i=0;i<len;i+=16) { \
         printf ("#%04x:  ",i+adr0); for (j=0;j<16;j++) { \
@@ -1734,7 +1793,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
                  ver= 3;
                  break;	     	 	 	  
 	        default:
-		         printf ("\nUnsupported version of .Z80 file, or .Z80 file corrupt\n\n");
+		         //printf ("\nUnsupported version of .Z80 file, or .Z80 file corrupt\n\n");
 		         return(1);
 		    }
 			//fread(&(buffer.rpc2), 1, buffer.length, fin);
@@ -1845,6 +1904,7 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
     }
 	printf("\n");
 	free(buf3);
+	free(mem);
 	return(0);	      	   
 
 
@@ -1873,6 +1933,7 @@ void BASPROC()
 		pos= pos +2 +2 +LineLen;      
     }
 	if (mem[0x0F]==0) printf("\n");
+	free(mem);
 }
 
 int OPROC()
@@ -1906,6 +1967,7 @@ int OPROC()
 		pos= pos +2 +LineLen; 	        
     }
 	printf("\n");
+	free(mem);
 	return(0);
 
 }
@@ -1942,6 +2004,7 @@ int PPROC()
 		pos= pos +2 +2 +LineLen; 	       
     }
 	printf("\n");
+	free(mem);
 	return(0);
 
 }
@@ -1978,6 +2041,7 @@ int P81PROC()
 		pos= pos +2 +2 +LineLen; 	       
     }
 	printf("\n");
+	free(mem);
 	return(0);
 
 }
@@ -2029,5 +2093,6 @@ int T81PROC()
           if (!strcmp(mem +pos,"<Silence>")) pos= pos +0x30;
 		  j= pos;
     }
+	free(mem);
 }
 
