@@ -114,6 +114,7 @@ int k;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
+int rzxcnt=0;
 long pos, j;
 int len, ProgLen;
 int block;
@@ -708,9 +709,9 @@ int main (int argc, char *argv[])
     else if (!strcmp(buf, "cc3")) colorcode=cc3;
     else if (!strcmp(buf, "cc4")) colorcode=cc4;	
     else Error ("option is not valid!");	
-    k = 2;	  
+    k = 2;
   }
-
+  strcpy (buf, argv[k]);
   if ((fIn = fopen (argv[k], "rb")) == NULL) 
     Error ("Can't read file!");
 
@@ -823,9 +824,11 @@ void ChangeFileExtension (char *str, char *ext)
   while (str[n] != '.') 
     n--;
 
-  n++; 
-  str[n] = 0;
-  strcat (str, ext);
+  str[n]= '_';
+  str[n +1]= rzxcnt + 48;
+  str[n +2]= '.';
+  str[n +3]= 0;
+  strcat(str, ext);
 }
 
 /* Determine length of file */
@@ -1574,14 +1577,10 @@ int RZXPROC()
 				   memcpy(mem, zmem +pos +0x11, uslen);
 
                 flen= uslen;				   
-                if (!strcasecmp(zmem +pos +9, "Z80")) {
-				   //int32_t out_size= inflate_zlib(zmem +pos +0x11, len -0x0C, mem, uslen);printf("outsize=%d\n", out_size);
-				   //FILE *fho=fopen("test.z80","wb");fwrite(mem, 1, out_size, fho);fclose(fho);	   
-				   Z80PROC();
-				}
-				else if (!strcasecmp(zmem +pos +9, "SNA")) {
-				   SNAPROC();
-                }
+                if (!strcasecmp(zmem +pos +9, "Z80")) Z80PROC();
+				else if (!strcasecmp(zmem +pos +9, "SNA")) SNAPROC();
+
+				ChangeFileExtension(buf, zmem +pos +9);FILE *fho=fopen(buf,"wb");fwrite(mem, 1, uslen, fho);fclose(fho); rzxcnt++;
 
                 //free(mem);
 				pos= j= pos +1 +4 +len;
