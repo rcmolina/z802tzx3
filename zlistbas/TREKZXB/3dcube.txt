@@ -1,0 +1,231 @@
+1 REM 3D DRAWING 3 - Spectrum Graphics
+2 REM ***********************
+3 REM
+10 REM a three dimensional shape is drawn by this program
+20 REM the rotation position a
+30 REM can be changed to givedifferent viewing angles.
+40 REM the program incorporates a routine to remove hidden lines
+50 REM the displayed faces areshaded in respect of incident light
+52 REM coming from above in the Y axis.
+55 REM
+60 REM draw border around screen
+64 REM Fast
+65 REM
+66 PAPER 7: INK 0: BORDER 7: BRIGHT 1: CLS
+70 GO SUB 900
+80 REM
+90 REM set up constants, variables and arrays
+95 REM
+100 DIM a(4,4)
+110 DIM b(4,4)
+115 DIM c(3)
+117 DIM d(3)
+120 LET sx=.42
+130 LET sy=.42
+140 LET sz=.42
+150 LET tx=1
+160 LET ty=1
+170 LET tz=1
+180 LET rx=40*PI/180
+190 LET ry=20*PI/180
+200 LET rz=50*PI/180
+400 REM main program loop
+410 GO SUB 1000
+420 GO SUB 5000
+430 GO SUB 3000
+440 GO SUB 4000
+450 GO SUB 6000
+460 REM PRINT #1;AT 0,0;" 3D Cube - With Shading"
+470 REM Slow
+500 STOP
+895 REM
+900 REM border drawing subroutine
+905 REM
+910 PLOT 0,16
+920 DRAW 255,0
+930 DRAW 0,175
+940 DRAW -255,0
+950 DRAW 0,-175
+960 RETURN
+995 REM
+1000 REM initialise shape
+1005 REM
+1010 LET np=8
+1020 LET ne=4
+1030 LET nf=6
+1040 DIM s(3,8)
+1050 DIM g(6,4,2)
+1060 DIM m(3,8)
+1100 REM
+1110 FOR n=1 TO np
+1120 READ s(1,n),s(2,n),s(3,n)
+1130 NEXT n
+1140 FOR f=1 TO nf
+1150 FOR e=1 TO ne
+1160 READ g(f,e,1),g(f,e,2)
+1170 NEXT e
+1180 NEXT f
+1195 REM
+1200 REM x,y,z point coordinates
+1205 REM
+1210 DATA 0,0,200,200,0,200,200,0,0,0,0,0
+1220 DATA 0,200,200,200,200,200,200,200,0,0,200,0
+1295 REM
+1300 REM connection data
+1305 REM
+1310 DATA 1,2,2,3,3,4,4,1
+1320 DATA 5,1,1,4,4,8,8,5
+1330 DATA 6,5,5,8,8,7,7,6
+1340 DATA 2,6,6,7,7,3,3,2
+1350 DATA 1,5,5,6,6,2,2,1
+1360 DATA 3,7,7,8,8,4,4,3
+1900 RETURN
+1995 REM
+2000 REM draw shape
+2005 REM
+2020 FOR e=1 TO ne
+2030 LET v1=g(f,e,1)
+2040 LET v2=g(f,e,2)
+2045 IF v1=0 THEN GO TO 2240
+2050 LET xb=m(1,v1)
+2060 LET yb=m(2,v1)
+2070 LET xe=m(1,v2)
+2080 LET ye=m(2,v2)
+2090 LET ds=1
+2100 LET p=xe-xb
+2110 LET q=ye-yb
+2120 LET r=SQR (p*p+q*q)
+2130 LET lx=p/r
+2140 LET ly=q/r
+2150 FOR i=0 TO r STEP ds
+2160 LET x=xb+i*lx
+2170 LET y=yb+i*ly
+2180 IF x>255 THEN GO TO 2230
+2190 IF y>175 THEN GO TO 2230
+2200 IF x<0 THEN GO TO 2230
+2210 IF y<0 THEN GO TO 2230
+2220 PLOT x+30,y-4
+2230 NEXT i
+2240 NEXT e
+2300 GO SUB 7000
+2900 RETURN
+2995 REM
+3000 REM set transformation matrix
+3005 REM
+3010 LET a(1,1)=COS (ry)*COS (rz)
+3020 LET a(1,2)=COS (ry)*SIN (rz)
+3030 LET a(1,3)=-SIN (ry)
+3040 LET a(1,4)=0
+3050 LET a(2,1)=COS (rx)*(-SIN (rz))+SIN (rx)*SIN (ry)*COS (rz)
+3060 LET a(2,2)=COS (rx)*COS (rz)+SIN (rx)*SIN (ry)*SIN (rz)
+3070 LET a(2,3)=SIN (rx)*COS (ry)
+3080 LET a(2,4)=0
+3090 LET a(3,1)=(-SIN (rx))*(-SIN (rz))+COS (rx)*SIN (ry)*COS (rz)
+3100 LET a(3,2)=-SIN (rx)*COS (rz)+COS (rz)*SIN (ry)*SIN (rz)
+3110 LET a(3,3)=COS (rx)*COS (ry)
+3120 LET a(3,4)=0
+3130 LET a(4,1)=0
+3140 LET a(4,2)=0
+3150 LET a(4,3)=0
+3160 LET a(4,4)=1
+3195 REM
+3200 REM set up scaling and translation matrix
+3205 REM
+3210 LET b(1,1)=sx*a(1,1)
+3220 LET b(1,2)=sx*a(1,2)
+3230 LET b(1,3)=sx*a(1,3)
+3240 REM
+3250 LET b(2,1)=sy*a(2,1)
+3260 LET b(2,2)=sy*a(2,2)
+3270 LET b(2,3)=sy*a(2,3)
+3280 REM
+3290 LET b(3,1)=sz*a(3,1)
+3300 LET b(3,2)=sz*a(3,2)
+3310 LET b(3,3)=sz*a(3,3)
+3320 REM
+3330 LET b(4,1)=tx
+3340 LET b(4,2)=ty
+3350 LET b(4,3)=tz
+3900 RETURN
+3995 REM
+4000 REM perform translation
+4005 REM
+4010 FOR q=1 TO np
+4015 REM
+4020 LET xt=s(1,q)-xc
+4030 LET yt=s(2,q)-yc
+4040 LET zt=s(3,q)-zc
+4045 REM
+4050 LET m(1,q)=xc+(xt*b(1,1)+yt*b(2,1)+zt*b(3,1)+b(4,1))
+4060 LET m(2,q)=yc+(xt*b(1,2)+yt*b(2,2)+zt*b(3,2)+b(4,2))
+4070 LET m(3,q)=zc+(xt*b(1,3)+yt*b(2,3)+zt*b(3,3)+b(4,3))
+4080 NEXT q
+4900 RETURN
+4995 REM
+5000 REM find centroid
+5005 REM
+5010 LET p=0: LET q=0: LET r=0
+5020 FOR i=1 TO np
+5030 LET p=p+s(1,i)
+5040 LET q=q+s(2,i)
+5050 LET r=r+s(3,i)
+5060 NEXT i
+5070 LET xc=p/np
+5080 LET yc=q/np
+5090 LET zc=r/np
+5900 RETURN
+5995 REM
+6000 REM hidden surface check
+6005 REM
+6010 FOR f=1 TO nf
+6020 FOR j=1 TO 3
+6030 LET c(j)=m(j,g(f,1,2))-m(j,g(f,1,1))
+6040 LET d(j)=m(j,g(f,2,1))-m(j,g(f,2,2))
+6050 NEXT j
+6060 LET p1=c(2)*d(3)-c(3)*d(2)
+6070 LET p2=c(3)*d(1)-c(1)*d(3)
+6080 LET p3=c(1)*d(2)-c(2)*d(1)
+6090 LET q1=1-m(1,g(f,1,2))
+6100 LET q2=1-m(2,g(f,1,2))
+6110 LET q3=500-m(3,g(f,1,2))
+6120 LET w=p1*q1+p2*q2+p3*q3
+6130 IF w>=0 THEN GO SUB 2000
+6140 NEXT f
+6900 RETURN
+6995 REM
+7000 REM shading
+7005 REM
+7010 LET r1=m(1,g(f,2,1))-m(1,g(f,1,1))
+7020 LET r2=m(2,g(f,2,1))-m(2,g(f,1,1))
+7030 LET r3=m(3,g(f,2,1))-m(3,g(f,1,1))
+7040 LET w1=SQR (r1*r1+r2*r2+r3*r3*2)
+7050 LET r4=m(1,g(f,4,1))-m(1,g(f,1,1))
+7060 LET r5=m(2,g(f,4,1))-m(2,g(f,1,1))
+7070 LET r6=m(3,g(f,4,1))-m(3,g(f,1,1))
+7080 LET w2=SQR (r4*r4*1.9+r5*r5+r6*r6)
+7090 LET r1=r1/w1
+7100 LET r2=r2/w1
+7110 LET r3=r3/w1
+7120 LET r4=r4/w2
+7130 LET r5=r5/w2
+7140 LET r6=r6/w2
+7150 LET u=r3*r4-r1*r6
+7160 IF u<=-.9 THEN LET ds=4: RETURN
+7170 IF u>-.9 AND u<-.7 THEN LET ds=4
+7180 IF u>-.7 AND u<-.5 THEN LET ds=4
+7190 IF u>-.5 AND u<-.3 THEN LET ds=3
+7200 IF u>-.3 AND u<-.1 THEN LET ds=3
+7210 IF u>-.1 AND u<.1 THEN LET ds=3
+7220 IF u>.1 AND u<.3 THEN LET ds=2
+7230 IF u>.3 AND u<.5 THEN LET ds=2
+7240 IF u>.5 AND u<.7 THEN LET ds=1
+7250 IF u>.7 AND u<.9 THEN LET ds=1
+7260 IF u>.9 THEN LET ds=1
+7270 FOR i=1 TO w1 STEP ds
+7280 FOR q=1 TO w2 STEP ds
+7290 LET x=m(1,g(f,1,1))+i*r1+q*r4
+7300 LET y=m(2,g(f,1,1))+i*r2+q*r5
+7310 PLOT x+30,y-4
+7320 NEXT q
+7330 NEXT i
+7900 RETURN
