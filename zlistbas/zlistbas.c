@@ -122,7 +122,7 @@ int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
 enum fflist{unknown, TZX, RZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
-enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc0;
+enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc1;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
@@ -694,10 +694,11 @@ int main (int argc, char *argv[])
     printf("%s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.o|.p|.p81|.t81] \n", argv[0]);
     printf("%s [option] file[.rzx] \n", argv[0]);	 
 	printf("  option \n");
-	printf("    cc1      colour code format: \\{nn}\\{n} \n");
-	printf("    cc2      colour code format: \\#0nn\\#00n \n");
-	printf("    cc3      colour code format: \\{An} A=i|p|f|b|v|o\n");
-	printf("    cc4      colour code format: \";CHR$ nn;CHR$ n;\" \n");
+	printf("    cc0      removed  colour code format  \n");	  
+	printf("   [cc1]     zmakebas colour code format: \\{nn}\\{n} \n");
+	printf("    cc2      basinC1  colour code format: \\#0nn\\#00n \n");
+	printf("    cc3      basinC2  colour code format: \\{An} A=i|p|f|b|v|o \n");
+	printf("    cc4      generic  colour code format: \";CHR$ nn;CHR$ n;\" \n");
     exit (0);
     }
 
