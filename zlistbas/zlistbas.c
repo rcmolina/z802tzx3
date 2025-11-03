@@ -122,7 +122,7 @@ int longer, custom, only, dataonly, direct, not_rec;
 unsigned int PilotPulses, ticksPerSample, pause;
 
 enum fflist{unknown, TZX, RZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
-enum cclist{cc0, cc1, cc2, cc3, cc4} colorcode = cc1;
+enum cclist{cc0, cc1, cc2, cc3, cc4, cc5} colorcode = cc1;
 
 int Get2 (unsigned char *mem) {return (mem[0] + (mem[1] * 256));}
 int Get3 (unsigned char *mem) {return (mem[0] + (mem[1] * 256) + (mem[2] * 256 * 256));}
@@ -690,25 +690,29 @@ int main (int argc, char *argv[])
 
   if (argc < 2 || argc > 3)
     {
-    printf("<v%s>: \n", PROG_VER);	 
-    printf("%s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.o|.p|.p81|.t81] \n", argv[0]);
-    printf("%s [option] file[.rzx] \n", argv[0]);	 
-	printf("  option \n");
-	printf("    cc0      removed  colour code format  \n");	  
-	printf("   [cc1]     zmakebas colour code format: \\{nn}\\{n} \n");
-	printf("    cc2      basinC1  colour code format: \\#0nn\\#00n \n");
-	printf("    cc3      basinC2  colour code format: \\{An} A=i|p|f|b|v|o \n");
-	printf("    cc4      generic  colour code format: \";CHR$ nn;CHR$ n;\" \n");
+	printf("\n");
+    printf("zlistbas <v%s> by Rafael Molina: \n", PROG_VER);
+	printf("\n");
+    printf("%s [option] file[.tzx|.tap|.sp|.sna|.z80|.bas|.o|.p|.p81|.t81] \n", "Usage: zlistbas");
+    printf("%s [option] file[.rzx] \n", "               ");	   
+	printf("        cc0      removed  colour code format  \n");	  
+	printf("       [cc1]     zmakebas colour code format: \\{nn}\\{n} \n");
+	printf("        cc2      bas2tap  attrib str  format: {attrstr nn} \n");	
+	printf("        cc3      basinC1  colour code format: \\#0nn\\#00n \n");
+	printf("        cc4      basinC2  colour code format: \\{An} A=i|p|f|b|v|o \n");
+	printf("        cc5      generic  colour code format: \";CHR$ nn;CHR$ n;\" \n");
     exit (0);
     }
 
   if (argc == 2) k = 1;
   else{
     strcpy (buf, argv[1]);
-    if (!strcmp(buf, "cc1")) colorcode=cc1;
+    if (!strcmp(buf, "cc0")) colorcode=cc0;
+    else if (!strcmp(buf, "cc1")) colorcode=cc1;	
     else if (!strcmp(buf, "cc2")) colorcode=cc2;
     else if (!strcmp(buf, "cc3")) colorcode=cc3;
-    else if (!strcmp(buf, "cc4")) colorcode=cc4;	
+    else if (!strcmp(buf, "cc4")) colorcode=cc4;
+    else if (!strcmp(buf, "cc5")) colorcode=cc5;		
     else Error ("option is not valid!");	
     k = 2;
   }
@@ -879,27 +883,32 @@ for (f = 0; f < linelen - 1; f++)
 
     else if ( (keyword == REM_code && f > 0) || inQuotes)
     {
+
 		if (colorcode == 1) {
-	        if (inFirstLineREM) printf("\\%02X", c); // Eightyone b81 format
-	        else printf("%s", x);
-		}
-		else if (colorcode == 2) {
-	        if (inFirstLineREM) printf("\\{0x%02X}", c);
-	        else printf("%s", x);
-		}
-		else if (colorcode == 3) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\%02X", c);
-	        else printf("%s", x);
-		}
-		else if (colorcode == 4) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\{0x%02X}", c);
-	        else printf("%s", x);
-		}	     	   
-		else {	// colorcolode == 0
 	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) )
 	            printf("\\{%d}", c); // Print escaped as char code
 	        else
 	            printf("%s", x); // Print translated char
+		}
+		else if (colorcode == 2) {
+	        if (inFirstLineREM) printf("\\%02X", c); // Eightyone b81 format
+	        else printf("%s", x);
+		}
+		else if (colorcode == 3) {
+	        if (inFirstLineREM) printf("\\{0x%02X}", c);
+	        else printf("%s", x);
+		}
+		else if (colorcode == 4) {
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\%02X", c);
+	        else printf("%s", x);
+		}
+		else if (colorcode == 5) {
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\{0x%02X}", c);
+	        else printf("%s", x);
+		}	     	   
+		else {	// colorcolode == 0
+	        if (inFirstLineREM) printf("\\{%03d}", c);
+	        else printf("%s", x);
 		}	    		
 	}	 	 
     else
@@ -920,9 +929,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     int i = 0, o = 0;
 
     char cc1f[]= "\\{nn}\\{n}";
-	char cc2f[]= "\\#0nn\\#00n";
-	char cc3f[]= "\\{An}";
-	char cc4f[]= "\";CHR$ nn;CHR$ n;\"";
+	char cc3f[]= "\\#0nn\\#00n";
+	char cc2i[]= "{INK  }", cc2p[]= "{PAPER  }", cc2f[]= "{FLASH  }", cc2b[]= "{BRIGHT  }", cc2v[]= "{INVERSE  }", cc2o[]= "{OVER  }";
+	char cc4f[]= "\\{An}";
+	char cc5f[]= "\";CHR$ nn;CHR$ n;\"";
 	char *cc;
 
     for(i=0;i<LineLen;i++)
@@ -935,9 +945,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 16:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='i';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2i; cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
+	          case 3:  cc=cc3f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='i';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    		
             i++;      /* embedded INK */
@@ -945,9 +956,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 17:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='p';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2p; cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;	   	     
+	          case 3:  cc=cc3f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='p';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    	
             i++;      /* embedded PAPER */
@@ -955,9 +967,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 18:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='f';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2f; cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;	   	     
+	          case 3:  cc=cc3f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='f';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   
             i++;      /* embedded FLASH */
@@ -965,9 +978,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 19:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='b';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2b; cc[8]=48+In[i+1] ;ConCat(Out,&o, cc); break;	   	     
+	          case 3:  cc=cc3f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='b';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;	   	    
 	        }	   
             i++;      /* embedded BRIGHT */
@@ -975,9 +989,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 20:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2v; cc[9]=48+In[i+1] ;ConCat(Out,&o, cc); break;	   	     
+	          case 3:  cc=cc3f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;			  
 	        }	   
             i++;      /* embedded INVERSE */
@@ -985,9 +1000,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 21:
 		    switch (colorcode) {
 	          case 1:  cc=cc1f; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 3:  cc=cc3f; cc[2]='o'; cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 4:  cc=cc4f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+			  case 2:  cc=cc2o; cc[6]=48+In[i+1] ;ConCat(Out,&o, cc); break;	   	     
+	          case 3:  cc=cc3f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 4:  cc=cc4f; cc[2]='o'; cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 5:  cc=cc5f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break; 	  
 	        }	   
             i++;      /* embedded OVER */
