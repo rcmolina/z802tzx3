@@ -8,25 +8,29 @@
 int main(int argc, char **argv) {
 
 	int address=60000;
-	int bytes=0,line=10,i;
+	int hex=1;
+	int bytes=0,line=10, procline,i;
 	struct stat file_info;
 	int fd;
 	unsigned char c;
 
 	if ((argc<2) || (argc>4)) {
-		printf("Usage:\t%s binfile [addr] [Lline] \n\n",argv[0]);
+		printf("Usage:\t%s binfile [addr] [dnumline|xnumline] \n\n",argv[0]);
 		return -1;
 	}
 
 	else if (argc==3) {
-		    if (toupper(argv[2][0])=='L') line= strtol(argv[2] +1,NULL,0);
+		    if (toupper(argv[2][0])=='D') {hex=0;line= strtol(argv[2] +1,NULL,0);}
+			else if (toupper(argv[2][0])=='X') {hex=1;line= strtol(argv[2] +1,NULL,0);}
 			else address=strtol(argv[2],NULL,0);
 	}
 	else if (argc==4) {
-			if (toupper(argv[2][0])=='L') line= strtol(argv[2] +1,NULL,0);
+		    if (toupper(argv[2][0])=='D') {hex=0;line= strtol(argv[2] +1,NULL,0);}
+			else if (toupper(argv[2][0])=='X') {hex=1;line= strtol(argv[2] +1,NULL,0);}
 			else address=strtol(argv[2],NULL,0);	   
 
-			if (toupper(argv[3][0])=='L') line= strtol(argv[3] +1,NULL,0);
+			if (toupper(argv[3][0])=='D') {hex=0;line= strtol(argv[3] +1,NULL,0);}
+			else if (toupper(argv[3][0])=='X') {hex=1;line= strtol(argv[3] +1,NULL,0);}
 			else address=strtol(argv[3],NULL,0);
 	}
 
@@ -41,9 +45,53 @@ int main(int argc, char **argv) {
 		fprintf(stderr,"Could not open file %s\n\n",argv[1]);
 		return -1;
 	}
+if (hex) {
+	printf("%d GO TO %d\n", line, line+60);
+    line+=10;
+	procline=line;
+	printf("%d FOR i=1 TO LEN t$ STEP 2\n", line);
+    line+=10;
+	printf("%d LET m=CODE t$(i): LET m=m -48: IF m>9 THEN LET m=m-7\n", line);
+    line+=10;
+	printf("%d LET n=CODE t$(i+1): LET n=n -48: IF n>9 THEN LET n=n-7\n", line);
+    line+=10;	   	     	  
+	printf("%d POKE %d+j,16*m+n: LET j=j+1: NEXT i\n", line, address-1);
+    line+=10;
+	printf("%d RETURN\n", line);
+    line+=10;
 
-	printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n",
-		line,line+10, bytes-1,address);
+	#define MAXBLOCK 96
+	unsigned char buffer[MAXBLOCK];
+
+    i=0;
+	int j;	  
+	while (i<bytes) {
+
+        if (i+MAXBLOCK < bytes) {
+		   read(fd,&buffer,MAXBLOCK);
+	       printf("%d LET t$=\"", line);
+		   for (j=0;j<MAXBLOCK;j++) printf("%02X",buffer[j]);
+		   printf("\"\n");
+           line+=10;		   
+	       printf("%d LET j=1: GO SUB %d\n", line, procline);
+           line+=10;
+		   i=i+MAXBLOCK;	  	  
+		}
+		else {	    	
+		   read(fd,&buffer,bytes-i);
+	       printf("%d LET t$=\"", line);
+		   for (j=0;j<bytes-i;j++) printf("%02X",buffer[j]);
+		   printf("\"\n");
+           line+=10;		   
+	       printf("%d GO SUB %d\n", line, procline);
+           line+=10;
+		   i=bytes;	     	 
+		}
+		
+	}		   	     
+}
+else {
+	printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", line, line+10, bytes-1, address);
 	line+=10;
 
 	for(i=0;i<bytes;i++) {
@@ -57,6 +105,7 @@ int main(int argc, char **argv) {
 		if ((i%16!=15) && (i!=(bytes-1))) printf(",");
 		else printf("\n");
 	}
+}
 	close(fd);
 
 	return 0;
