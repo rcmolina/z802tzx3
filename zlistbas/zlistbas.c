@@ -708,15 +708,9 @@ int main (int argc, char *argv[])
 
   if (argc == 2) k = 1;
   else{
-    strcpy (buf, argv[1]);
-    if (!strcmp(buf, "cc0")) colorcode=cc0;
-    else if (!strcmp(buf, "cc1")) colorcode=cc1;	
-    else if (!strcmp(buf, "cc2")) colorcode=cc2;
-    else if (!strcmp(buf, "cc3")) colorcode=cc3;
-    else if (!strcmp(buf, "cc4")) colorcode=cc4;
-    else if (!strcmp(buf, "cc5")) colorcode=cc5;
-    else if (!strcmp(buf, "cc6")) colorcode=cc6;	
-    else Error ("option is not valid!");	
+    strcpy (buf, argv[1] +2);
+    colorcode= buf[0] -48;
+    if (colorcode <0 || colorcode >9) Error ("option is not valid!");
     k = 2;
   }
   strcpy (buf, argv[k]);
