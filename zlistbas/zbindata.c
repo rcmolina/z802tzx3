@@ -62,33 +62,29 @@ if (hex) {
 
 	#define MAXBLOCK 96
 	unsigned char buffer[MAXBLOCK];
+    int j;
 
-    i=0;
-	int j;	  
-	while (i<bytes) {
-
-        if (i+MAXBLOCK < bytes) {
-		   read(fd,&buffer,MAXBLOCK);
-	       printf("%d LET t$=\"", line);
-		   for (j=0;j<MAXBLOCK;j++) printf("%02X",buffer[j]);
-		   printf("\"\n");
-           line+=10;		   
-	       printf("%d LET j=1: GO SUB %d\n", line, procline);
-           line+=10;
-		   i=i+MAXBLOCK;	  	  
-		}
-		else {	    	
-		   read(fd,&buffer,bytes-i);
-	       printf("%d LET t$=\"", line);
-		   for (j=0;j<bytes-i;j++) printf("%02X",buffer[j]);
-		   printf("\"\n");
-           line+=10;		   
-	       printf("%d GO SUB %d\n", line, procline);
-           line+=10;
-		   i=bytes;	     	 
-		}
-		
-	}		   	     
+	i=0;	
+    while (i+MAXBLOCK < bytes) {
+      read(fd,&buffer,MAXBLOCK);
+      printf("%d LET t$=\"", line);
+      for (j=0;j<MAXBLOCK;j++) printf("%02X",buffer[j]);
+      printf("\"\n");
+      line+=10;	   	      
+      printf("%d LET j=1: GO SUB %d\n", line, procline);
+      line+=10;
+      i=i+MAXBLOCK;	     	 
+    }
+    if (i < bytes) {    	
+      read(fd,&buffer,bytes-i);
+      printf("%d LET t$=\"", line);
+      for (j=0;j<bytes-i;j++) printf("%02X",buffer[j]);
+      printf("\"\n");
+      line+=10;	   	      
+      printf("%d GO SUB %d\n", line, procline);
+      line+=10;
+      i=bytes;
+    }		   	     
 }
 else {
 	printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", line, line+10, bytes-1, address);
