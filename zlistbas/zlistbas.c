@@ -26,7 +26,7 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.16"
+#define PROG_VER "1.17"
 
 int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
 int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
@@ -698,7 +698,7 @@ int main (int argc, char *argv[])
 	printf("       colour code format:\n");
 	printf("        cc0      removed  ccf  \n");	
 	printf("       [cc1]     zmakebas ccf: \\{nn}\\{n} \n");
-	printf("        cc2      EigtyOne ccf: \\XX\\0n \n");	 
+	printf("        cc2      EigtyOne ccf: \\XX\\0x \n");	 
 	printf("        cc3      bas2tap  ccf: {ATTRSTR n} \n");	
 	printf("        cc4      basinC1  ccf: \\#0nn\\#00n \n");
 	printf("        cc5      basinC2  ccf: \\{An} A=i|p|f|b|v|o \n");
@@ -929,20 +929,49 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
 
+    char c1f[]= "\\{n}";
+	char c2f[]= "\\0n";
+	char c3f[]= "{n}";
+	char c4f[]= "\\#00n";
+	char c5f[]= "\\#00n";
+	char c6f[]= "\";CHR$ n;\"";
+
     char cc1f[]= "\\{nn}\\{n}";
-	char cc2f[]= "\\XX\\0n";
+	char cc2f[]= "\\XX\\0x";
 	char cc3i[]= "{INK n}", cc3p[]= "{PAPER n}", cc3f[]= "{FLASH n}", cc3b[]= "{BRIGHT n}", cc3v[]= "{INVERSE n}", cc3o[]= "{OVER n}";
 	char cc4f[]= "\\#0nn\\#00n";
 	char cc5f[]= "\\{An}";
 	char cc6f[]= "\";CHR$ nn;CHR$ n;\"";
-	char *cc;
 
+    char c21f[]= "\\{nn}\\{nn}\\{nn}";
+	char c22f[]= "\\XX\\xx\\xx";
+	char c23a[]= "{AT nn,nn}", c23t[]= "{TAB nn}";
+	char c24f[]= "\\#0nn\\#0nn\\#0nn";
+	char c25a[]= "\\{ann,nn}",  c25t[]= "\\#0nn\\#0nn\\#0nn";
+	char c26f[]= "\";CHR$ nn;CHR$ nn;CHR$ nn;\"";
+
+	char *cc;
+    unsigned char hexstr[2];
+			
     for(i=0;i<LineLen;i++)
     {
         switch (In[i])
         {
+        case 6:
+		case 8:
+		    switch (colorcode) {
+	          case 1:  cc=c1f; cc[2]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 2:  cc=c2f; cc[2]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 3:  cc=c3f; cc[1]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 4:  cc=c4f; cc[4]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 5:  cc=c5f; cc[4]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 6:  cc=c6f; cc[7]=48+In[i] ;ConCat(Out,&o, cc); break;
+			  default: break;
+	        }	   	 
+            break;
+   	      
         case 14:
-            i += 5;   /* Skip encoded number */
+            i += 5;   /* Skip encoded floating point number */
             break;
         case 16:
 		    switch (colorcode) {
@@ -954,7 +983,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    		
-            i++;      /* embedded INK */
+            i++;      /* skip value for embedded INK */
             break;
         case 17:
 		    switch (colorcode) {
@@ -966,7 +995,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   	    	
-            i++;      /* embedded PAPER */
+            i++;      /* skip value for embedded PAPER */
             break;
         case 18:
 		    switch (colorcode) {
@@ -978,7 +1007,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;
 	        }	   
-            i++;      /* embedded FLASH */
+            i++;      /* skip value for embedded FLASH */
             break;
         case 19:
 		    switch (colorcode) {
@@ -990,7 +1019,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;	   	    
 	        }	   
-            i++;      /* embedded BRIGHT */
+            i++;      /* skip value for embedded BRIGHT */
             break;
         case 20:
 		    switch (colorcode) {
@@ -1002,7 +1031,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break;			  
 	        }	   
-            i++;      /* embedded INVERSE */
+            i++;      /* skip value for embedded INVERSE */
             break;
         case 21:
 		    switch (colorcode) {
@@ -1014,13 +1043,54 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=cc6f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
 			  default: break; 	  
 	        }	   
-            i++;      /* embedded OVER */
+            i++;      /* skip value for embedded OVER */
             break;
         case 22:
-            i += 2;   /* Skip embedded AT */
+		    switch (colorcode) {
+	          case 1:  cc=c21f; cc[2]='2'; cc[3]='2';cc[7]=48+(In[i+1]/10);cc[8]=48+(In[i+1]%10);
+			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); ConCat(Out,&o, cc); break;
+					   
+	          case 2:  cc=c22f; cc[1]='1';cc[2]='6';sprintf(hexstr, "%02X",In[i+1]);cc[4]=hexstr[0];cc[5]=hexstr[1];
+			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1];ConCat(Out,&o, cc); break;
+			  
+	          case 3:  cc=c23a; cc[4]=48+(In[i+1]/10); cc[5]=48+(In[i+1]%10);
+			           cc[7]=48+(In[i+2]/10); cc[8]=48+(In[i+2]%10);ConCat(Out,&o, cc); break;
+					   	        	  
+	          case 4:  cc=c24f; cc[3]='2'; cc[4]='2';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+					   
+	          case 5:  cc=c25a; cc[3]=48+(In[i+1]/10); cc[4]=48+(In[i+1]%10);
+			           cc[6]=48+(In[i+2]/10); cc[7]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+					   
+	          case 6:  cc=c26f; cc[7]='2'; cc[8]='2';cc[15]=48+(In[i+1]/10);cc[16]=48+(In[i+1]%10);
+			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+
+			  default: break;
+	        }	  	   	   
+            i += 2;   /* Skip xy for embedded AT */
             break;
         case 23:
-            i += 2;   /* Skip embedded TAB */
+		    switch (colorcode) {
+	          case 1:  cc=c21f; cc[2]='2'; cc[3]='3';cc[7]=48+(In[i+1]/10);cc[8]=48+(In[i+1]%10);
+			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); ConCat(Out,&o, cc); break;
+					   
+	          case 2:  cc=c22f; cc[1]='1';cc[2]='7';sprintf(hexstr, "%02X",In[i+1]);cc[4]=hexstr[0];cc[5]=hexstr[1];
+			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1];ConCat(Out,&o, cc); break;
+			  
+	          case 3:  cc=c23t; cc[5]=48+((In[i+1]%32)/10); cc[6]=48+((In[i+1]%32)%10);ConCat(Out,&o, cc); break;
+					   	        	  
+	          case 4:  cc=c24f; cc[3]='2'; cc[4]='3';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+					   
+	          case 5:  cc=c25t; cc[3]='2'; cc[4]='3';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+					   
+	          case 6:  cc=c26f; cc[7]='2'; cc[8]='3';cc[15]=48+(In[i+1]/10);cc[16]=48+(In[i+1]%10);
+			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+
+			  default: break;
+	        }
+            i += 2;   /* Skip nn for embedded TAB */
             break;
         case 92:
             ConCat(Out,&o,"\\\\");
@@ -1077,67 +1147,130 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             ConCat(Out,&o,"\\::");
             break;
         case 144:
-            ConCat(Out,&o,"\\a");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{A}"); break;
+              default: ConCat(Out,&o,"\\a"); break;
+            }
             break;
         case 145:
-            ConCat(Out,&o,"\\b");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{B}"); break;
+              default: ConCat(Out,&o,"\\b"); break;
+            }
             break;
         case 146:
-            ConCat(Out,&o,"\\c");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{C}"); break;
+              default: ConCat(Out,&o,"\\c"); break;
+            }
             break;
         case 147:
-            ConCat(Out,&o,"\\d");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{D}"); break;
+              default: ConCat(Out,&o,"\\d"); break;
+            }
             break;
         case 148:
-            ConCat(Out,&o,"\\e");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{E}"); break;
+              default: ConCat(Out,&o,"\\e"); break;
+            }
             break;
         case 149:
-            ConCat(Out,&o,"\\f");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{F}"); break;
+              default: ConCat(Out,&o,"\\f"); break;
+            }
             break;
         case 150:
-            ConCat(Out,&o,"\\g");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{G}"); break;
+              default: ConCat(Out,&o,"\\g"); break;
+            }
             break;
         case 151:
-            ConCat(Out,&o,"\\h");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{H}"); break;
+              default: ConCat(Out,&o,"\\h"); break;
+            }
             break;
         case 152:
-            ConCat(Out,&o,"\\i");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{I}"); break;
+              default: ConCat(Out,&o,"\\i"); break;
+            }
             break;
         case 153:
-            ConCat(Out,&o,"\\j");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{J}"); break;
+              default: ConCat(Out,&o,"\\j"); break;
+            }
             break;
         case 154:
-            ConCat(Out,&o,"\\k");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{K}"); break;
+              default: ConCat(Out,&o,"\\k"); break;
+            }
             break;
         case 155:
-            ConCat(Out,&o,"\\l");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{L}"); break;
+              default: ConCat(Out,&o,"\\l"); break;
+            }
             break;
         case 156:
-            ConCat(Out,&o,"\\m");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{M}"); break;
+              default: ConCat(Out,&o,"\\m"); break;
+            }
             break;
         case 157:
-            ConCat(Out,&o,"\\n");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{N}"); break;
+              default: ConCat(Out,&o,"\\n"); break;
+            }
             break;
         case 158:
-            ConCat(Out,&o,"\\o");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{O}"); break;
+              default: ConCat(Out,&o,"\\o"); break;
+            }
             break;
         case 159:
-            ConCat(Out,&o,"\\p");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{P}"); break;
+              default: ConCat(Out,&o,"\\p"); break;
+            }
             break;
         case 160:
-            ConCat(Out,&o,"\\q");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{Q}"); break;
+              default: ConCat(Out,&o,"\\q"); break;
+            }
             break;
         case 161:
-            ConCat(Out,&o,"\\r");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{R}"); break;
+              default: ConCat(Out,&o,"\\r"); break;
+            }
             break;
         case 162:
-            ConCat(Out,&o,"\\s");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{S}"); break;
+              default: ConCat(Out,&o,"\\s"); break;
+            }
             break;
         case 163:
-            ConCat(Out,&o,"\\t");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{T}"); break;
+              default: ConCat(Out,&o,"\\t"); break;
+            }
             break;
         case 164:
-            ConCat(Out,&o,"\\u");
+            switch (colorcode) {
+              case 3:  ConCat(Out,&o,"{U}"); break;
+              default: ConCat(Out,&o,"\\u"); break;
+            }
             break;
         case 165:
             ConCat(Out,&o,"RND");
