@@ -960,14 +960,15 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 6:
 		case 8:
 		    switch (colorcode) {
-	          case 1:  cc=c1f; cc[2]=48+In[i] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=c2f; cc[2]=48+In[i] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=c3f; cc[1]=48+In[i] ;ConCat(Out,&o, cc); break;
-	          case 4:  cc=c4f; cc[4]=48+In[i] ;ConCat(Out,&o, cc); break;
-	          case 5:  cc=c5f; cc[4]=48+In[i] ;ConCat(Out,&o, cc); break;
-	          case 6:  cc=c6f; cc[7]=48+In[i] ;ConCat(Out,&o, cc); break;
+	          case 1:  cc=c1f; cc[2]=48+In[i] ; break;
+	          case 2:  cc=c2f; cc[2]=48+In[i] ; break;
+	          case 3:  cc=c3f; cc[1]=48+In[i] ; break;
+	          case 4:  cc=c4f; cc[4]=48+In[i] ; break;
+	          case 5:  cc=c5f; cc[4]=48+In[i] ; break;
+	          case 6:  cc=c6f; cc[7]=48+In[i] ; break;
 			  default: break;
-	        }	   	 
+	        }
+            ConCat(Out,&o, cc);	  	
             break;
    	      
         case 14:
@@ -975,121 +976,129 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 16:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='0';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3i; cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='i';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='0';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3i; cc[5]=48+In[i+1] ; break;
+	          case 4:  cc=cc4f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='i';cc[3]=48+In[i+1] ; break;
+	          case 6:  cc=cc6f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ; break;
 			  default: break;
 	        }	   	    		
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded INK */
             break;
         case 17:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='1';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3p; cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;	     	   
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='p';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='1';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3p; cc[7]=48+In[i+1] ; break;	      	    
+	          case 4:  cc=cc4f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='p';cc[3]=48+In[i+1] ; break;
+	          case 6:  cc=cc6f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ; break;
 			  default: break;
 	        }	   	    	
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded PAPER */
             break;
         case 18:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='2';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3f; cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;		  	       	     
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='f';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='2';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3f; cc[7]=48+In[i+1] ; break;	 	   	        	  
+	          case 4:  cc=cc4f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='f';cc[3]=48+In[i+1] ; break;
+	          case 6:  cc=cc6f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ; break;
 			  default: break;
 	        }	   
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded FLASH */
             break;
         case 19:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='3';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3b; cc[8]=48+In[i+1] ;ConCat(Out,&o, cc); break;	     	   
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='b';cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='3';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3b; cc[8]=48+In[i+1] ; break;	      	    
+	          case 4:  cc=cc4f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='b';cc[3]=48+In[i+1] ; break;
+	          case 6:  cc=cc6f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ; break;
 			  default: break;	   	    
 	        }	   
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded BRIGHT */
             break;
         case 20:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='4';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3v; cc[9]=48+In[i+1] ;ConCat(Out,&o, cc); break;	     	   
-	          case 4:  cc=cc4f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='4';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3v; cc[9]=48+In[i+1] ; break;	      	    
+	          case 4:  cc=cc4f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ; break;
+	          case 6:  cc=cc6f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ; break;
 			  default: break;			  
 	        }	   
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded INVERSE */
             break;
         case 21:
 		    switch (colorcode) {
-	          case 1:  cc=cc1f; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='5';cc[5]=48+In[i+1] ;ConCat(Out,&o, cc); break;
-	          case 3:  cc=cc3o; cc[6]=48+In[i+1] ;ConCat(Out,&o, cc); break;	     	   
-	          case 4:  cc=cc4f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 5:  cc=cc5f; cc[2]='o'; cc[3]=48+In[i+1] ;ConCat(Out,&o, cc);break;
-	          case 6:  cc=cc6f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ;ConCat(Out,&o, cc);break;
+	          case 1:  cc=cc1f; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ; break;
+	          case 2:  cc=cc2f; cc[1]='1';cc[2]='5';cc[5]=48+In[i+1] ; break;
+	          case 3:  cc=cc3o; cc[6]=48+In[i+1] ; break;	      	    
+	          case 4:  cc=cc4f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ; break;
+	          case 5:  cc=cc5f; cc[2]='o'; cc[3]=48+In[i+1] ; break;
+	          case 6:  cc=cc6f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ; break;
 			  default: break; 	  
 	        }	   
+            ConCat(Out,&o, cc);
             i++;      /* skip value for embedded OVER */
             break;
         case 22:
 		    switch (colorcode) {
 	          case 1:  cc=c21f; cc[2]='2'; cc[3]='2';cc[7]=48+(In[i+1]/10);cc[8]=48+(In[i+1]%10);
-			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); ConCat(Out,&o, cc); break;
+			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); break;
 					   
 	          case 2:  cc=c22f; cc[1]='1';cc[2]='6';sprintf(hexstr, "%02X",In[i+1]);cc[4]=hexstr[0];cc[5]=hexstr[1];
-			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1];ConCat(Out,&o, cc); break;
+			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1]; break;
 			  
 	          case 3:  cc=c23a; cc[4]=48+(In[i+1]/10); cc[5]=48+(In[i+1]%10);
-			           cc[7]=48+(In[i+2]/10); cc[8]=48+(In[i+2]%10);ConCat(Out,&o, cc); break;
+			           cc[7]=48+(In[i+2]/10); cc[8]=48+(In[i+2]%10); break;
 					   	        	  
 	          case 4:  cc=c24f; cc[3]='2'; cc[4]='2';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
-			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10); break;
 					   
 	          case 5:  cc=c25a; cc[3]=48+(In[i+1]/10); cc[4]=48+(In[i+1]%10);
-			           cc[6]=48+(In[i+2]/10); cc[7]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[6]=48+(In[i+2]/10); cc[7]=48+(In[i+2]%10); break;
 					   
 	          case 6:  cc=c26f; cc[7]='2'; cc[8]='2';cc[15]=48+(In[i+1]/10);cc[16]=48+(In[i+1]%10);
-			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10); break;
 
 			  default: break;
 	        }	  	   	   
+            ConCat(Out,&o, cc);
             i += 2;   /* Skip xy for embedded AT */
             break;
         case 23:
 		    switch (colorcode) {
 	          case 1:  cc=c21f; cc[2]='2'; cc[3]='3';cc[7]=48+(In[i+1]/10);cc[8]=48+(In[i+1]%10);
-			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); ConCat(Out,&o, cc); break;
+			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); break;
 					   
 	          case 2:  cc=c22f; cc[1]='1';cc[2]='7';sprintf(hexstr, "%02X",In[i+1]);cc[4]=hexstr[0];cc[5]=hexstr[1];
-			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1];ConCat(Out,&o, cc); break;
+			           sprintf(hexstr, "%02X",In[i+2]);cc[7]=hexstr[0];cc[8]=hexstr[1]; break;
 			  
-	          case 3:  cc=c23t; cc[5]=48+((In[i+1]%32)/10); cc[6]=48+((In[i+1]%32)%10);ConCat(Out,&o, cc); break;
+	          case 3:  cc=c23t; cc[5]=48+((In[i+1]%32)/10); cc[6]=48+((In[i+1]%32)%10); break;
 					   	        	  
 	          case 4:  cc=c24f; cc[3]='2'; cc[4]='3';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
-			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10); break;
 					   
 	          case 5:  cc=c25t; cc[3]='2'; cc[4]='3';cc[8]=48+(In[i+1]/10); cc[9]=48+(In[i+1]%10);
-			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[13]=48+(In[i+2]/10); cc[14]=48+(In[i+2]%10); break;
 					   
 	          case 6:  cc=c26f; cc[7]='2'; cc[8]='3';cc[15]=48+(In[i+1]/10);cc[16]=48+(In[i+1]%10);
-			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10);ConCat(Out,&o, cc);break;
+			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10); break;
 
 			  default: break;
 	        }
+            ConCat(Out,&o, cc);
             i += 2;   /* Skip nn for embedded TAB */
             break;
         case 92:
@@ -1148,129 +1157,150 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 144:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{A}"); break;
-              default: ConCat(Out,&o,"\\a"); break;
+              case 3:  cc="{A}"; break;
+              default: cc="\\a"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 145:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{B}"); break;
-              default: ConCat(Out,&o,"\\b"); break;
+              case 3:  cc="{B}"; break;
+              default: cc="\\b"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 146:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{C}"); break;
-              default: ConCat(Out,&o,"\\c"); break;
+              case 3:  cc="{C}"; break;
+              default: cc="\\c"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 147:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{D}"); break;
-              default: ConCat(Out,&o,"\\d"); break;
+              case 3:  cc="{D}"; break;
+              default: cc="\\d"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 148:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{E}"); break;
-              default: ConCat(Out,&o,"\\e"); break;
+              case 3:  cc="{E}"; break;
+              default: cc="\\e"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 149:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{F}"); break;
-              default: ConCat(Out,&o,"\\f"); break;
+              case 3:  cc="{F}"; break;
+              default: cc="\\f"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 150:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{G}"); break;
-              default: ConCat(Out,&o,"\\g"); break;
+              case 3:  cc="{G}"; break;
+              default: cc="\\g"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 151:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{H}"); break;
-              default: ConCat(Out,&o,"\\h"); break;
+              case 3:  cc="{H}"; break;
+              default: cc="\\h"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 152:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{I}"); break;
-              default: ConCat(Out,&o,"\\i"); break;
+              case 3:  cc="{I}"; break;
+              default: cc="\\i"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 153:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{J}"); break;
-              default: ConCat(Out,&o,"\\j"); break;
+              case 3:  cc="{J}"; break;
+              default: cc="\\j"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 154:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{K}"); break;
-              default: ConCat(Out,&o,"\\k"); break;
+              case 3:  cc="{K}"; break;
+              default: cc="\\k"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 155:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{L}"); break;
-              default: ConCat(Out,&o,"\\l"); break;
+              case 3:  cc="{L}"; break;
+              default: cc="\\l"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 156:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{M}"); break;
-              default: ConCat(Out,&o,"\\m"); break;
+              case 3:  cc="{M}"; break;
+              default: cc="\\m"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 157:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{N}"); break;
-              default: ConCat(Out,&o,"\\n"); break;
+              case 3:  cc="{N}"; break;
+              default: cc="\\n"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 158:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{O}"); break;
-              default: ConCat(Out,&o,"\\o"); break;
+              case 3:  cc="{O}"; break;
+              default: cc="\\o"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 159:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{P}"); break;
-              default: ConCat(Out,&o,"\\p"); break;
+              case 3:  cc="{P}"; break;
+              default: cc="\\p"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 160:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{Q}"); break;
-              default: ConCat(Out,&o,"\\q"); break;
+              case 3:  cc="{Q}"; break;
+              default: cc="\\q"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 161:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{R}"); break;
-              default: ConCat(Out,&o,"\\r"); break;
+              case 3:  cc="{R}"; break;
+              default: cc="\\r"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 162:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{S}"); break;
-              default: ConCat(Out,&o,"\\s"); break;
+              case 3:  cc="{S}"; break;
+              default: cc="\\s"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 163:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{T}"); break;
-              default: ConCat(Out,&o,"\\t"); break;
+              case 3:  cc="{T}"; break;
+              default: cc="\\t"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 164:
             switch (colorcode) {
-              case 3:  ConCat(Out,&o,"{U}"); break;
-              default: ConCat(Out,&o,"\\u"); break;
+              case 3:  cc="{U}"; break;
+              default: cc="\\u"; break;
             }
+            ConCat(Out,&o, cc);
             break;
         case 165:
             ConCat(Out,&o,"RND");
