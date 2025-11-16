@@ -110,7 +110,7 @@ FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
-int k;
+int k, unprot0e;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
@@ -118,8 +118,6 @@ int rzxcnt=0;
 long pos, j;
 int len, ProgLen;
 int block;
-int longer, custom, only, dataonly, direct, not_rec;
-unsigned int PilotPulses, ticksPerSample, pause;
 
 enum fflist{unknown, TZX, RZX, TAP, SP, SNA, Z80, BAS, O, P, P81, T81} fformat = unknown;
 enum cclist{cc0, cc1, cc2, cc3, cc4, cc5, cc6} colorcode = cc1;
@@ -708,8 +706,8 @@ int main (int argc, char *argv[])
 
   if (argc == 2) k = 1;
   else{
-    strcpy (buf, argv[1] +2);
-    colorcode= buf[0] -48;
+    if ( !hdrcmp(argv[1],"un") || !hdrcmp(argv[1],"UN") ) unprot0e=1;
+    colorcode= argv[1][2] -48;
     if (colorcode <0 || colorcode >9) Error ("option is not valid!");
     k = 2;
   }
@@ -754,7 +752,6 @@ int main (int argc, char *argv[])
   if (fread (mem, 1, flen, fIn) != flen)
     Error ("Read error!");	 
 
-  pos = block = longer = custom = only = dataonly = direct = not_rec;
 
   switch (fformat)
   	{
@@ -928,7 +925,15 @@ printf("\n");
 int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
+	int j,k;
 
+    char u1e[]="\\{14}\\{nnn}\\{nnn}\\{nnn}\\{nnn}\\{nnn}";
+    char u2e[]="\\0E\\xx\\xx\\xx\\xx\\xx";
+    char u3e[]="{14}{nnn}{nnn}{nnn}{nnn}{nnn}";	
+    char u4e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
+    char u5e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
+    char u6e[]="_nnnnn";
+	
     char c1f[]= "\\{n}";
 	char c2f[]= "\\0n";
 	char c3f[]= "{n}";
@@ -952,6 +957,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 
 	char *cc;
     unsigned char hexstr[2];
+	unsigned char ascstr[3];
 			
     for(i=0;i<LineLen;i++)
     {
@@ -972,6 +978,18 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
    	      
         case 14:
+            if (unprot0e) {
+		       switch (colorcode) {
+                 case 0:  break;
+	             case 2:  cc=u2e; for (j=0,k=0;k<5;j=j+3,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[4+j]=hexstr[0];cc[5+j]=hexstr[1];} ; break;
+	             case 3:  cc=u3e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[5+j]=ascstr[0];cc[6+j]=ascstr[1];cc[7+j]=ascstr[2];} ; break;
+	             case 4:  cc=u4e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
+	             case 5:  cc=u5e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
+	             case 6:  cc=u6e; sprintf(cc, "_%d",In[i+3] +256*In[i+4]); break;
+			     default: cc=u1e; for (j=0,k=0;k<5;j=j+6,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
+	           }
+			   ConCat(Out,&o, cc);
+            }
             i += 5;   /* Skip encoded floating point number */
             break;
         case 16:
