@@ -878,12 +878,10 @@ for (f = 0; f < linelen - 1; f++)
     else if ( (keyword == REM_code && f > 0) || inQuotes)
     {
 
-		if (colorcode == 1) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) )
-	            printf("\\{%d}", c); // Print escaped as char code
-	        else
-	            printf("%s", x); // Print translated char
-		}
+		if (colorcode == 0) {
+	        if (inFirstLineREM) printf("\\{%03d}", c);
+	        else printf("%s", x);
+		}	    	
 		else if (colorcode == 2) {
 	        if (inFirstLineREM) printf("\\%02X", c); // Eightyone b81 format
 	        else printf("%s", x);
@@ -903,11 +901,14 @@ for (f = 0; f < linelen - 1; f++)
 		else if (colorcode == 6) {
 	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\{%03d}", c);
 	        else printf("%s", x);
-		}	   	   	       	     
-		else {	// colorcolode == 0
-	        if (inFirstLineREM) printf("\\{%03d}", c);
-	        else printf("%s", x);
-		}	    		
+		}
+		else {
+	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) )
+	            printf("\\{%d}", c); // Print escaped as char code
+	        else
+	            printf("%s", x); // Print translated char
+		}
+
 	}	 	 
     else
         printf("%s", x); // Print translated char
