@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <math.h>
 
 #include <stdint.h>
 /* 7.18.1.1  Exact-width integer types */
@@ -987,7 +988,12 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	             case 4:  cc=u4e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	             case 5:  cc=u5e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	             case 6:  cc=u6e; if (!In[i+1]) sprintf(cc, "_%d",In[i+3] +256*In[i+4]); 
-				                  else for (j=0,k=0;k<5;j=j+2,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[2+j]=hexstr[0];cc[3+j]=hexstr[1];} ; break;
+				                  //else for (j=0,k=0;k<5;j=j+2,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[2+j]=hexstr[0];cc[3+j]=hexstr[1];} ;
+                                  else {
+								     if (In[i+2] > 128) sprintf(cc, "_-%f", ldexp( (16777216*(float)In[i+2] +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128) );
+									 else sprintf(cc, "_%f", ldexp( (16777216*(float)(In[i+2]|128) +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128) );
+								  }
+						  break;
 			     default: cc=u1e; for (j=0,k=0;k<5;j=j+6,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	           }
 			   ConCat(Out,&o, cc);
