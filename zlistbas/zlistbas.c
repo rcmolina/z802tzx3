@@ -933,7 +933,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     char u3e[]="{14}{nnn}{nnn}{nnn}{nnn}{nnn}";	
     char u4e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
     char u5e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
-    char u6e[]="_nnnnn";
+    char u6e[]="__xxxxxxxxxx";
 	
     char c1f[]= "\\{n}";
 	char c2f[]= "\\0n";
@@ -986,7 +986,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	             case 3:  cc=u3e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[5+j]=ascstr[0];cc[6+j]=ascstr[1];cc[7+j]=ascstr[2];} ; break;
 	             case 4:  cc=u4e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	             case 5:  cc=u5e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
-	             case 6:  cc=u6e; sprintf(cc, "_%d",In[i+3] +256*In[i+4]); break;
+	             case 6:  cc=u6e; if (!In[i+1]) sprintf(cc, "_%d",In[i+3] +256*In[i+4]); 
+				                  else for (j=0,k=0;k<5;j=j+2,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[2+j]=hexstr[0];cc[3+j]=hexstr[1];} ; break;
 			     default: cc=u1e; for (j=0,k=0;k<5;j=j+6,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	           }
 			   ConCat(Out,&o, cc);
