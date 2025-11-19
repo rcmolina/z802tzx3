@@ -933,9 +933,9 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     int i = 0, o = 0;
 	int j,k;
 
-    char u1e[]="\\{14}\\{nnn}\\{nnn}\\{nnn}\\{nnn}\\{nnn}";
+    char u1e[]="\\{0x0E}\\{0xXX}\\{0xXX}\\{0xXX}\\{0xXX}\\{0xXX}";
     char u2e[]="\\0E\\xx\\xx\\xx\\xx\\xx";
-    char u3e[]="{14}{nnn}{nnn}{nnn}{nnn}{nnn}";	
+    char u3e[]="{0E}{xx}{xx}{xx}{xx}{xx}";	
     char u4e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
     char u5e[]="\\#014\\#nnn\\#nnn\\#nnn\\#nnn\\#nnn";
     char u6e[]="__xxxxxxxxxx";
@@ -954,7 +954,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	char cc5f[]= "\\{An}";
 	char cc6f[]= "\";CHR$ nn;CHR$ n;\"";
 
-    char c21f[]= "\\{nn}\\{nn}\\{nn}";
+    char c21f[]= "\\{0xXX}\\{0xXX}\\{0xXX}";
 	char c22f[]= "\\XX\\xx\\xx";
 	char c23a[]= "{AT nn,nn}", c23t[]= "{TAB nn}";
 	char c24f[]= "\\#0nn\\#0nn\\#0nn";
@@ -991,7 +991,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 		       switch (colorcode) {
                  case 0:  break;
 	             case 2:  cc=u2e; for (j=0,k=0;k<5;j=j+3,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[4+j]=hexstr[0];cc[5+j]=hexstr[1];} ; break;
-	             case 3:  cc=u3e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[5+j]=ascstr[0];cc[6+j]=ascstr[1];cc[7+j]=ascstr[2];} ; break;
+	             case 3:  cc=u3e; for (j=0,k=0;k<5;j=j+4,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[5+j]=hexstr[0];cc[6+j]=hexstr[1];} ; break;
 	             case 4:  cc=u4e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	             case 5:  cc=u5e; for (j=0,k=0;k<5;j=j+5,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
 	             case 6:  cc=u6e; 
@@ -1020,7 +1020,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
                    break;
 
                  #endif
-			     default: cc=u1e; for (j=0,k=0;k<5;j=j+6,k=k+1){sprintf(ascstr, "%03d",In[i+1+k]);cc[7+j]=ascstr[0];cc[8+j]=ascstr[1];cc[9+j]=ascstr[2];} ; break;
+			     default: cc=u1e; for (j=0,k=0;k<5;j=j+7,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[11+j]=hexstr[0];cc[12+j]=hexstr[1];} ; break;
 	           }
 			   ConCat(Out,&o, cc);
             }
@@ -1123,8 +1123,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  cc=c26f; cc[7]='2'; cc[8]='2';cc[15]=48+(In[i+1]/10);cc[16]=48+(In[i+1]%10);
 			           cc[23]=48+(In[i+2]/10);cc[24]=48+(In[i+2]%10); break;
 
-	          default: cc=c21f; cc[2]='2'; cc[3]='2';cc[7]=48+(In[i+1]/10);cc[8]=48+(In[i+1]%10);
-			           cc[12]=48+(In[i+2]/10);cc[13]=48+(In[i+2]%10); break;
+	          default: cc=c21f; cc[4]='1';cc[5]='6';sprintf(hexstr, "%02X",In[i+1]);cc[11]=hexstr[0];cc[12]=hexstr[1];
+			           sprintf(hexstr, "%02X",In[i+2]);cc[18]=hexstr[0];cc[19]=hexstr[1]; break;
 					   
 	        }	  	   	   
             if (colorcode) ConCat(Out,&o, cc);
