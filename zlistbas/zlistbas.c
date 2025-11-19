@@ -964,7 +964,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	char *cc;
     unsigned char hexstr[2];
 	unsigned char ascstr[3];
-			
+#ifdef FPCALCS
+    float zxfp;
+#endif
+	 	 	 
     for(i=0;i<LineLen;i++)
     {
         switch (In[i])
@@ -994,18 +997,26 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	             case 6:  cc=u6e; 
                  #ifdef FPCALCS
 
-				   if (!In[i+1])
+                   zxfp= ldexp( (16777216*(float)(In[i+2]|128) +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128 );
+                   if (!In[i+1])
                      sprintf(cc, "_%d",In[i+3] +256*In[i+4]);
-                   else if (In[i+2] < 128) 
-                     sprintf(cc, "_%g", ldexp( (16777216*(float)(In[i+2]|128) +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128) );
+                   else if (In[i+2] < 128)
+                     sprintf(cc, "_%g", zxfp );
                    else
-                     sprintf(cc, "_-%g", ldexp( (16777216*(float)In[i+2] +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128) );
-                   break;
+                     sprintf(cc, "_-%g", zxfp );
 
+                   if (In[i+1] && !(int)zxfp ){
+                      if (In[i+2] < 128)
+                        sprintf(cc, "%s%s", "_",cc+2);
+                      else
+                        sprintf(cc, "%s%s", "_-",cc+3);
+                   }
+                   break;
+				   
                  #else
 
-				   if (!In[i+1]) sprintf(cc, "_%d",In[i+3] +256*In[i+4]);
-				   else for (j=0,k=0;k<5;j=j+2,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[2+j]=hexstr[0];cc[3+j]=hexstr[1];} ;                          
+                   if (!In[i+1]) sprintf(cc, "_%d",In[i+3] +256*In[i+4]);
+                   else for (j=0,k=0;k<5;j=j+2,k=k+1){sprintf(hexstr, "%02X",In[i+1+k]);cc[2+j]=hexstr[0];cc[3+j]=hexstr[1];} ;                          
                    break;
 
                  #endif
