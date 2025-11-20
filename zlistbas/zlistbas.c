@@ -951,8 +951,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 14:
             if (unprot0e) {
 		       switch (colorcode) {
-                 case 0:  break;
-                 default: sprintf(ccf, "\\{14}\\{%d}\\{%d}\\{%d}\\{%d}\\{%d}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+                 case 0:  sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+                 default: //sprintf(ccf, "\\{14}\\{%d}\\{%d}\\{%d}\\{%d}\\{%d}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 2:  //sprintf(ccf, "\\0E\\%02X\\%02X\\%02X\\%02X\\%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 3:  //sprintf(ccf, "{0E}{%02X}{%02X}{%02X}{%02X}{%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 4:  //sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
@@ -979,7 +979,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
                  #else
 
                    if (!In[i+1]) sprintf(ccf, "_%d",In[i+3] +256*In[i+4]);
-                   else sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);                         
+                   else sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);
                    break;
 
                  #endif
