@@ -884,7 +884,7 @@ for (f = 0; f < linelen - 1; f++)
     {
 
 		if (colorcode == 0) {
-	        if (inFirstLineREM) printf("\\{%03d}", c);
+	        if (inFirstLineREM) ;
 	        else printf("%s", x);
 		}	    	
 		else if (colorcode == 2) {
@@ -904,7 +904,7 @@ for (f = 0; f < linelen - 1; f++)
 	        else printf("%s", x);
 		}
 		else if (colorcode == 6) {
-	        if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) printf("\\{%03d}", c);
+	        if (inFirstLineREM) printf("\\{%d}", c);
 	        else printf("%s", x);
 		}
 		else {
@@ -932,13 +932,6 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
 	int j,k;
-
-    char cc1f[]= "\\{nn}\\{n}";
-	char cc2f[]= "\\XX\\0x";
-	char cc3i[]= "{INK n}", cc3p[]= "{PAPER n}", cc3f[]= "{FLASH n}", cc3b[]= "{BRIGHT n}", cc3v[]= "{INVERSE n}", cc3o[]= "{OVER n}";
-	char cc4f[]= "\\#0nn\\#00n";
-	char cc5f[]= "\\{An}";
-	char cc6f[]= "\";CHR$ nn;CHR$ n;\"";
 
     char ccf[64];
 	char *cc;
@@ -970,8 +963,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             if (unprot0e) {
 		       switch (colorcode) {
                  case 0:  break;
-	             case 2:  sprintf(ccf, "\\0E\\%02X\\%02X\\%02X\\%02X\\%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);
-	             case 3:  sprintf(ccf, "{0E}{%02X}{%02X}{%02X}{%02X}{%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);
+	             case 2:  sprintf(ccf, "\\0E\\%02X\\%02X\\%02X\\%02X\\%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+	             case 3:  sprintf(ccf, "{0E}{%02X}{%02X}{%02X}{%02X}{%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 4:  sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 5:  sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
 	             case 6:
@@ -1009,85 +1002,85 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 16:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='0';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3i; cc[5]=48+In[i+1] ; break;
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='6';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='i';cc[3]=48+In[i+1] ; break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='6';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='1';cc[3]='6';cc[7]=48+In[i+1] ; break;
+	          case 2:  sprintf(ccf, "\\10\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{INK %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#016\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{i%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 16;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{16}\\{%d}",In[i+1]); break;
 	        }	   	    		
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded INK */
             break;
         case 17:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='1';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3p; cc[7]=48+In[i+1] ; break;	      	    
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='7';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='p';cc[3]=48+In[i+1] ; break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='7';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='1';cc[3]='7';cc[7]=48+In[i+1] ; break;
+	          case 2:  sprintf(ccf, "\\11\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{PAPER %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#017\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{p%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 17;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{17}\\{%d}",In[i+1]); break;
 	        }	   	    	
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded PAPER */
             break;
         case 18:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='2';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3f; cc[7]=48+In[i+1] ; break;	 	   	        	  
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='8';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='f';cc[3]=48+In[i+1] ; break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='8';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='1';cc[3]='8';cc[7]=48+In[i+1] ; break;
+	          case 2:  sprintf(ccf, "\\12\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{FLASH %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#018\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{f%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 18;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{18}\\{%d}",In[i+1]); break;
 	        }	   
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded FLASH */
             break;
         case 19:
-		    switch (colorcode) {
+		    switch (colorcode) { 	  
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='3';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3b; cc[8]=48+In[i+1] ; break;	      	    
-	          case 4:  cc=cc4f; cc[3]='1';cc[4]='9';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='b';cc[3]=48+In[i+1] ; break;
-	          case 6:  cc=cc6f; cc[7]='1';cc[8]='9';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='1';cc[3]='9';cc[7]=48+In[i+1] ; break;	  	   
+	          case 2:  sprintf(ccf, "\\13\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{BRIGHT %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#019\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{b%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 19;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{19}\\{%d}",In[i+1]); break;
 	        }	   
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded BRIGHT */
             break;
         case 20:
-		    switch (colorcode) {
+		    switch (colorcode) {  	    
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='4';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3v; cc[9]=48+In[i+1] ; break;	      	    
-	          case 4:  cc=cc4f; cc[3]='2';cc[4]='0';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='v';if (In[i+1]) cc[3]='i'; else cc[3]='n' ; break;
-	          case 6:  cc=cc6f; cc[7]='2';cc[8]='0';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='2';cc[3]='0';cc[7]=48+In[i+1] ; break;	   	     
+	          case 2:  sprintf(ccf, "\\14\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{INVERSE %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#020\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{v%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 20;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{20}\\{%d}",In[i+1]); break;
 	        }	   
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded INVERSE */
             break;
         case 21:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  cc=cc2f; cc[1]='1';cc[2]='5';cc[5]=48+In[i+1] ; break;
-	          case 3:  cc=cc3o; cc[6]=48+In[i+1] ; break;	      	    
-	          case 4:  cc=cc4f; cc[3]='2'; cc[4]='1';cc[9]=48+In[i+1] ; break;
-	          case 5:  cc=cc5f; cc[2]='o'; cc[3]=48+In[i+1] ; break;
-	          case 6:  cc=cc6f; cc[7]='2'; cc[8]='1';cc[15]=48+In[i+1] ; break;
-			  default: cc=cc1f; cc[2]='2'; cc[3]='1';cc[7]=48+In[i+1] ; break;
+	          case 2:  sprintf(ccf, "\\15\\%02X",In[i+1]); break;
+	          case 3:  sprintf(ccf, "{OVER %d}",In[i+1]); break;
+	          case 4:  sprintf(ccf, "\\#021\\#%03d",In[i+1]); break;
+	          case 5:  sprintf(ccf, "\\{o%d}",In[i+1]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ 21;CHR$ %d;\"",In[i+1]); break;
+			  default: sprintf(ccf, "\\{21}\\{%d}",In[i+1]); break;
 	        }	   
-            if (colorcode) ConCat(Out,&o, cc);
+            if (colorcode) ConCat(Out,&o, ccf);
             i++;      /* skip value for embedded OVER */
             break;
         case 22:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  sprintf(ccf, "\\22\\%02X\\%02X",In[i+1],In[i+2]); break;
+	          case 2:  sprintf(ccf, "\\16\\%02X\\%02X",In[i+1],In[i+2]); break;
 	          case 3:  sprintf(ccf, "{AT %d,%d}",In[i+1],In[i+2]); break;  
 	          case 4:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;  
 	          case 5:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;
@@ -1100,7 +1093,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 23:
 		    switch (colorcode) {
               case 0:  break;
-	          case 2:  sprintf(ccf, "\\23\\%02X\\%02X",In[i+1],In[i+2]); break;
+	          case 2:  sprintf(ccf, "\\17\\%02X\\%02X",In[i+1],In[i+2]); break;
 	          case 3:  sprintf(ccf, "{TAB %d}",In[i+1]+256*In[i+2]); break;   	       	     
 	          case 4:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;
 	          case 5:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;    
