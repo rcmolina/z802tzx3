@@ -1603,7 +1603,6 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         switch (In[i])
         {
         default:		  
-          if (binREM){
 		    switch (colorcode) {
               case 0:  break;
 			  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
@@ -1614,10 +1613,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
 	        }
             if (colorcode) ConCat(Out,&o, ccf);
-            
-          }
 		}
-
 	  }
     }
 	if (binREM) {inREM= 0; binREM= 0;}
