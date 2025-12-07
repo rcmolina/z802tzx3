@@ -118,7 +118,6 @@ unsigned char LineData[65535],LineText[65535];
 int k, unprot0e;
 int inREM = 0;
 int binREM = 0;	// First REM includes only binary codes,
-int firstREM = 0;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
@@ -1529,10 +1528,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 234:
             ConCat(Out,&o," REM ");
-            if (binREM) {
-				inREM= 1;
-				firstREM= 1;
-			}  	   
+            if (binREM) inREM= 1;
             break;
         case 235:
             ConCat(Out,&o," FOR ");
@@ -1624,7 +1620,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 
 	  }
     }
-	if (firstREM) {inREM= 0; binREM= 0;}
+	if (binREM) {inREM= 0; binREM= 0;}
 
     Out[o]= 0;
     return strlen(Out);
