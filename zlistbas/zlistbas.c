@@ -117,7 +117,8 @@ unsigned char LineData[65535],LineText[65535];
 
 int k, unprot0e;
 int inREM = 0;
-int binREM = 0;	// First REM includes only binary codes,
+int binREM = 0;
+int binallREM = 0;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
@@ -713,11 +714,14 @@ int main (int argc, char *argv[])
 
   if (argc == 2) k = 1;
   else{
-    if ( !hdrcmp(argv[1],"un") || !hdrcmp(argv[1],"UN") ) unprot0e=1;
-    else if ( !hdrcmp(argv[1],"xr") || !hdrcmp(argv[1],"XR") ) binREM=1;
+    if ( !hdrcmp(argv[1],"un",2) || !hdrcmp(argv[1],"UN",2) ) unprot0e=1;
+    else if ( !hdrcmp(argv[1],"xr",2) || !hdrcmp(argv[1],"XR",2) ) binREM=1;
+    else if ( !hdrcmp(argv[1],"xx",2) || !hdrcmp(argv[1],"XX",2) ) {binREM=1; binallREM=1;}
+
     colorcode= argv[1][2] -48;
     if (colorcode <0 || colorcode >9) Error ("option is not valid!");
     k = 2;
+
   }
   strcpy (buf, argv[k]);
   if ((fIn = fopen (argv[k], "rb")) == NULL) 
@@ -1617,7 +1621,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	  }
     }
 	if (inREM) {inREM= 0; binREM= 0;}
-
+	if (binallREM) binREM= 1;
+	
     Out[o]= 0;
     return strlen(Out);
 }
