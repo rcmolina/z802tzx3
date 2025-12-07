@@ -31,10 +31,10 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.17"
+#define PROG_VER "1.18"
 
-int inFirstLineREM; /* 1=First line is a REM and we are on the first line */
-int onlyFirstLineREM = 0; /* 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere */
+int inFirstLineREM; // 1=First line is a REM and we are on the first line
+int onlyFirstLineREM = 0; // 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere 
 #define QUOTE_code 11
 #define NUM_code 126
 #define REM_code 234
@@ -116,6 +116,8 @@ unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k, unprot0e;
+int binREM = 0;	// First REM includes only binary codes,
+int firstREM = 1;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
@@ -712,6 +714,7 @@ int main (int argc, char *argv[])
   if (argc == 2) k = 1;
   else{
     if ( !hdrcmp(argv[1],"un") || !hdrcmp(argv[1],"UN") ) unprot0e=1;
+    if ( !hdrcmp(argv[1],"xr") || !hdrcmp(argv[1],"XR") ) binREM=1;
     colorcode= argv[1][2] -48;
     if (colorcode <0 || colorcode >9) Error ("option is not valid!");
     k = 2;
@@ -929,9 +932,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 #ifdef FPCALCS
     float zxfp;
 #endif
-	 	 	 
+  	  
     for(i=0;i<LineLen;i++)
     {
+	  if (!binREM){
         switch (In[i])
         {
         case 6:
@@ -1524,6 +1528,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 234:
             ConCat(Out,&o," REM ");
+			firstREM= 0;
             break;
         case 235:
             ConCat(Out,&o," FOR ");
@@ -1590,10 +1595,37 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         default:
             if (In[i] >= 32) Out[o++] = In[i];
-        }
-    }
 
-    Out[o]=0;
+        }
+      }
+	  else {
+        switch (In[i])
+        {
+        case 234:
+          if (firstREM){
+            ConCat(Out,&o," REM ");
+			firstREM= 0;
+			binREM= 1;
+            break;
+		  }
+        default:		  
+		    switch (colorcode) {
+              case 0:  break;
+			  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
+	          case 2:  sprintf(ccf, "\\%02X",In[i]); break;
+	          case 3:  sprintf(ccf, "{%02X}",In[i]); break;
+	          case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
+	          case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
+	          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
+	        }
+            if (colorcode) ConCat(Out,&o, ccf);
+
+		}
+	  }
+    }
+	if (!firstREM) binREM= 0;
+
+    Out[o]= 0;
     return strlen(Out);
 }
 
