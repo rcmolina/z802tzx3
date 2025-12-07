@@ -116,8 +116,9 @@ unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k, unprot0e;
+int inREM = 0;
 int binREM = 0;	// First REM includes only binary codes,
-int firstREM = 1;
+int firstREM = 0;
 long flen;
 unsigned char *mem, *zmem;
 char buf[256];
@@ -714,7 +715,7 @@ int main (int argc, char *argv[])
   if (argc == 2) k = 1;
   else{
     if ( !hdrcmp(argv[1],"un") || !hdrcmp(argv[1],"UN") ) unprot0e=1;
-    if ( !hdrcmp(argv[1],"xr") || !hdrcmp(argv[1],"XR") ) binREM=1;
+    else if ( !hdrcmp(argv[1],"xr") || !hdrcmp(argv[1],"XR") ) binREM=1;
     colorcode= argv[1][2] -48;
     if (colorcode <0 || colorcode >9) Error ("option is not valid!");
     k = 2;
@@ -932,10 +933,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 #ifdef FPCALCS
     float zxfp;
 #endif
-  	  
+
     for(i=0;i<LineLen;i++)
     {
-	  if (!binREM){
+	  if (!inREM){
         switch (In[i])
         {
         case 6:
@@ -1528,7 +1529,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 234:
             ConCat(Out,&o," REM ");
-			firstREM= 0;
+            if (binREM) {
+				inREM= 1;
+				firstREM= 1;
+			}  	   
             break;
         case 235:
             ConCat(Out,&o," FOR ");
@@ -1598,17 +1602,12 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 
         }
       }
-	  else {
+	  else {	//inREM= 1
+
         switch (In[i])
         {
-        case 234:
-          if (firstREM){
-            ConCat(Out,&o," REM ");
-			firstREM= 0;
-			binREM= 1;
-            break;
-		  }
         default:		  
+          if (firstREM){
 		    switch (colorcode) {
               case 0:  break;
 			  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
@@ -1619,11 +1618,13 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
 	        }
             if (colorcode) ConCat(Out,&o, ccf);
-
+            
+          }
 		}
+
 	  }
     }
-	if (!firstREM) binREM= 0;
+	if (firstREM) {inREM= 0; binREM= 0;}
 
     Out[o]= 0;
     return strlen(Out);
