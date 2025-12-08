@@ -117,7 +117,7 @@ unsigned char LineData[65535],LineText[65535];
 
 int k, unprot0e;
 int inREM = 0;
-int binREM = 0;
+int bin1stREM = 0;
 int binallREM = 0;
 long flen;
 unsigned char *mem, *zmem;
@@ -715,8 +715,8 @@ int main (int argc, char *argv[])
   if (argc == 2) k = 1;
   else{
     if ( !hdrcmp(argv[1],"un",2) || !hdrcmp(argv[1],"UN",2) ) unprot0e=1;
-    else if ( !hdrcmp(argv[1],"xr",2) || !hdrcmp(argv[1],"XR",2) ) binREM=1;
-    else if ( !hdrcmp(argv[1],"xx",2) || !hdrcmp(argv[1],"XX",2) ) {binREM=1; binallREM=1;}
+    else if ( !hdrcmp(argv[1],"xr",2) || !hdrcmp(argv[1],"XR",2) ) bin1stREM=1;
+    else if ( !hdrcmp(argv[1],"xx",2) || !hdrcmp(argv[1],"XX",2) ) binallREM=1;
 
     colorcode= argv[1][2] -48;
     if (colorcode <0 || colorcode >9) Error ("option is not valid!");
@@ -1532,7 +1532,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 234:
             ConCat(Out,&o," REM ");
-            if (binREM) inREM= 1;
+            if (bin1stREM || binallREM) inREM= 1;
             break;
         case 235:
             ConCat(Out,&o," FOR ");
@@ -1620,8 +1620,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 		}
 	  }
     }
-	if (inREM) {inREM= 0; binREM= 0;}
-	if (binallREM) binREM= 1;
+	if (inREM) {inREM= 0; bin1stREM= 0;}
+	if (binallREM) inREM= 0;
 	
     Out[o]= 0;
     return strlen(Out);
