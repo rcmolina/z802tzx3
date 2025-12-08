@@ -1621,7 +1621,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	  }
     }
 	if (inREM) {inREM= 0; bin1stREM= 0;}
-	if (binallREM) inREM= 0;
+	//if (binallREM) inREM= 0;
 	
     Out[o]= 0;
     return strlen(Out);
