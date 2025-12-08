@@ -1615,7 +1615,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 3:  sprintf(ccf, "{%02X}",In[i]); break;
 	          case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
 	          case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
+	          case 6:  sprintf(ccf, "%02X",In[i]); break;
 	        }
             if (colorcode) ConCat(Out,&o, ccf);
 		}
