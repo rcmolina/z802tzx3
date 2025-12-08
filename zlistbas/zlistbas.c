@@ -1533,6 +1533,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         case 234:
             ConCat(Out,&o," REM ");
             if (bin1stREM || binallREM) inREM= 1;
+			if (bin1stREM) bin1stREM= 0;
             break;
         case 235:
             ConCat(Out,&o," FOR ");
@@ -1620,8 +1621,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 		}
 	  }
     }
-	if (inREM) {inREM= 0; bin1stREM= 0;}
-	//if (binallREM) inREM= 0;
+	inREM= 0;
 	
     Out[o]= 0;
     return strlen(Out);
