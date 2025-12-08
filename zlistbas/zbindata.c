@@ -65,17 +65,10 @@ if (hex) {
     unsigned char buffer[MAXBLOCK];
     int j;
 
-    i=0;	
-    if (i+MAXBLOCK < bytes) {
-       read(fd,&buffer,MAXBLOCK);
-       printf("%d LET t$= \"", line);
-       for (j=0;j<MAXBLOCK;j++) printf("%02X",buffer[j]);
-       printf("\"\n");
-       line+=10;		   
-       printf("%d LET j=1: GO SUB %d\n", line, procline);
-       line+=10;
-       i=i+MAXBLOCK;	  	  
-    }
+    printf("%d LET j=1\n", line);
+    line+=10;	   
+
+    i=0; 
     while (i+MAXBLOCK < bytes) {
        read(fd,&buffer,MAXBLOCK);
        printf("%d LET t$= \"", line);
