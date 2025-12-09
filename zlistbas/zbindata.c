@@ -52,9 +52,9 @@ if (hex) {
     procline=line;
     printf("%d FOR i=1 TO LEN t$ STEP 2\n", line);
     line+=10;
-    printf("%d LET m=CODE t$(i): LET m=m -48: IF m>9 THEN LET m=m-7\n", line);
+    printf("%d LET m=CODE t$(i): LET m=m-48: IF m>9 THEN LET m=m-7\n", line);
     line+=10;
-    printf("%d LET n=CODE t$(i+1): LET n=n -48: IF n>9 THEN LET n=n-7\n", line);
+    printf("%d LET n=CODE t$(i+1): LET n=n-48: IF n>9 THEN LET n=n-7\n", line);
     line+=10;	   	     	  
     printf("%d POKE %d+j,16*m+n: LET j=j+1: NEXT i\n", line, address-1);
     line+=10;
@@ -68,6 +68,7 @@ if (hex) {
     printf("%d LET j=1\n", line);
     line+=10;	   
 
+/*
     i=0; 
     while (i+MAXBLOCK < bytes) {
        read(fd,&buffer,MAXBLOCK);
@@ -89,6 +90,20 @@ if (hex) {
        line+=10;
        i=bytes;
     }		   	     
+*/
+    int numbytes;
+    i=0; 
+    while (i< bytes) {
+       numbytes=read(fd,&buffer,MAXBLOCK);
+       printf("%d LET t$= \"", line);
+       for (j=0;j<numbytes;j++) printf("%02X",buffer[j]);
+       printf("\"\n");
+       line+=10;		   
+       printf("%d GO SUB %d\n", line, procline);
+       line+=10;
+       i=i+numbytes;	  	  
+    }		 
+
 }
 else {
     printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", line, line+10, bytes-1, address);
