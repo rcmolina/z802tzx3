@@ -1082,7 +1082,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 2:  sprintf(ccf, "\\16\\%02X\\%02X",In[i+1],In[i+2]); break;
 	          case 3:  sprintf(ccf, "{AT %d,%d}",In[i+1],In[i+2]); break;  
 	          case 4:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;  
-	          case 5:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;
+	          case 5:  sprintf(ccf, "\\{a%d,%d}",In[i+1],In[i+2]); break;
 	          case 6:  sprintf(ccf, "\";CHR$ 22;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;		   
 	        }	  	   	   
             if (colorcode) ConCat(Out,&o, ccf);
@@ -1095,7 +1095,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 2:  sprintf(ccf, "\\17\\%02X\\%02X",In[i+1],In[i+2]); break;
 	          case 3:  sprintf(ccf, "{TAB %d}",In[i+1]+256*In[i+2]); break;   	       	     
 	          case 4:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;
-	          case 5:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;    
+	          case 5:  sprintf(ccf, "\\{t%d}",In[i+1]+256*In[i+2]); break;    
 	          case 6:  sprintf(ccf, "\";CHR$ 23;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;
 	        }
             if (colorcode) ConCat(Out,&o, ccf);
