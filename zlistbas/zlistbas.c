@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdint.h>
+#include <ctype.h>	//toupper()
 
 #ifdef FPCALCS
 #include <math.h>
@@ -31,7 +32,7 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.18"
+#define PROG_VER "1.19"
 
 int inFirstLineREM; // 1=First line is a REM and we are on the first line
 int onlyFirstLineREM = 0; // 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere 
@@ -153,6 +154,7 @@ void Error (char *errstr);
 void ChangeFileExtension (char *str, char *ext);
 int DeTokenize(unsigned char *In, int LineLen, unsigned char *Out);
 void ConCat(unsigned char *Out,int *Pos,unsigned char *Text);
+int hdrcmp (char *mem, char *hdrstart, int len);
 int TZXPROC();
 int RZXPROC();
 void TAPPROC();
@@ -163,6 +165,7 @@ void BASPROC();
 int OPROC();
 int PPROC();
 int P81PROC();
+int T81PROC();
 
 /*
  * zlib-deflate-nostdlib
@@ -889,25 +892,30 @@ for (f = 0; f < linelen - 1; f++)
 
     else if ( (keyword == REM_code && f > 0) || inQuotes)
     {
+	//printf("(0x%02X)", c);
 	   switch (colorcode) {
-          case 0:  if (!inFirstLineREM) printf("%s", x); break;
-          default: if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) )
+          case 0:  if ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ; else  printf("%s", x); break;
+
+	      default: if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // zmakebas dec format
 	                  printf("\\{%d}", c); // Print escaped as char code
 	               else printf("%s", x); // Print translated char
-				   break;
-	      case 2:  if (inFirstLineREM) printf("\\%02X", c); // Eightyone b81 format
-	               else printf("%s", x);
-				   break;
-	      case 3:  if (inFirstLineREM) printf("\\{0x%02X}", c); else printf("%s", x); break;
-	      case 4:  if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) 
+				   break;	   	     
+
+          case 2:  if (binallREM || inFirstLineREM) printf("\\{%d}", c); else printf("%s", x); break; // zmakebas dec format all escaped
+
+	      case 3:  if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // Eightyone b81 format
                       printf("\\%02X", c);
 	               else printf("%s", x);
 				   break;
-	      case 5:  if ((!onlyFirstLineREM || inFirstLineREM) && ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ) 
+ 
+	      case 4:  if (binallREM || inFirstLineREM) printf("\\%02X", c); else printf("%s", x); break; // Eightyone b81 format all escaped
+
+	      case 5:  if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // zmakebas hex format
                       printf("\\{0x%02X}", c);
 	               else printf("%s", x);
 				   break;
-	      case 6:  if (inFirstLineREM) printf("\\{%d}", c); else printf("%s", x); break;
+
+	      case 6:  if (binallREM || inFirstLineREM) printf("\\{0x%02X}", c); else printf("%s", x); break; // zmakebas hex format all escaped
 	   }
 
 	}	 	 
@@ -2181,7 +2189,8 @@ int OPROC()
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
-    inFirstLineREM = (mem[pos +2] == REM_zx80code);
+    //inFirstLineREM = (mem[pos +2] == REM_zx80code);
+	inFirstLineREM = bin1stREM;
     while (pos < flen) {	
         LineNum= 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
@@ -2216,7 +2225,8 @@ int PPROC()
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
-    inFirstLineREM = (mem[pos +4] == REM_code);
+    //inFirstLineREM = (mem[pos +4] == REM_code);
+	inFirstLineREM = bin1stREM;
     while (pos < flen) {	
         LineNum = 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
@@ -2253,7 +2263,8 @@ int P81PROC()
     // seek to PROG area
 	flen= VarsAddr -STARTADDR +HDRLEN;
 	pos= ProgAddr -STARTADDR +HDRLEN;
-    inFirstLineREM = (mem[pos +4] == REM_code);	
+    //inFirstLineREM = (mem[pos +4] == REM_code);
+	inFirstLineREM = bin1stREM;
     while (pos < flen) {	
         LineNum = 256*mem[pos] +mem[pos +1];   
         if (LineNum > 16384) break;   //se salta la zona de vars tras programa
@@ -2297,7 +2308,8 @@ int T81PROC()
           //printf("inDFILEpos=0x%X\n", inDFILEpos);
 
           if (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos)
-		    inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
+		    //inFirstLineREM = (mem[ProgAddr -STARTADDR + hdrlen + j +4] == REM_code);
+			inFirstLineREM = bin1stREM;
 			
 		  while (ProgAddr -STARTADDR + hdrlen + j < inDFILEpos) {
             ProgAddrFpos= ProgAddr -STARTADDR + hdrlen + j;
