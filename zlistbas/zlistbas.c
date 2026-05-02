@@ -890,27 +890,27 @@ for (f = 0; f < linelen - 1; f++)
     if ( (keyword != REM_code) && (c == NUM_code) )
         f += 5;  /* avoid inline FP numbers - but ok for REMs */
 
-    else if ( (keyword == REM_code && f > 0) || inQuotes)
+    else if ( (keyword == REM_code && f > 0) || (inQuotes && (c != QUOTE_code)) )
     {
 	//printf("(0x%02X)", c);
 	   switch (colorcode) {
-          case 0:  if ((strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`'))) ; else  printf("%s", x); break;
+          case 0:  if ( (strcmp(x, NAK) == 0) || (strlen(x)>1 && x[0] != '\\') ) ; else  printf("%s", x); break;
 
-	      default: if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // zmakebas dec format
+	      default: if ( (c == 142 || c == 155) || (strcmp(x, NAK) == 0) || (strlen(x)>1 && x[0] != '\\') )  // zmakebas dec format
 	                  printf("\\{%d}", c); // Print escaped as char code
 	               else printf("%s", x); // Print translated char
 				   break;	   	     
 
           case 2:  if (binallREM || inFirstLineREM) printf("\\{%d}", c); else printf("%s", x); break; // zmakebas dec format all escaped
 
-	      case 3:  if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // Eightyone b81 format
+	      case 3:  if ( (c == 142 || c == 155) || (strcmp(x, NAK) == 0) || (strlen(x)>1 && x[0] != '\\') )  // Eightyone b81 format
                       printf("\\%02X", c);
 	               else printf("%s", x);
 				   break;
  
 	      case 4:  if (binallREM || inFirstLineREM) printf("\\%02X", c); else printf("%s", x); break; // Eightyone b81 format all escaped
 
-	      case 5:  if ((c == 142 || c == 155) || (strcmp(x, NAK) == 0) || ((strlen(x) >1) && (x[0] != '\\') && (x[0]!='`')))  // zmakebas hex format
+	      case 5:  if ( (c == 142 || c == 155) || (strcmp(x, NAK) == 0) || (strlen(x)>1 && x[0] != '\\') )  // zmakebas hex format
                       printf("\\{0x%02X}", c);
 	               else printf("%s", x);
 				   break;
