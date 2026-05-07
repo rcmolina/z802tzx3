@@ -32,7 +32,7 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.19"
+#define PROG_VER "1.20"
 
 int inFirstLineREM; // 1=First line is a REM and we are on the first line
 int onlyFirstLineREM = 0; // 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere 
@@ -117,7 +117,7 @@ unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
 unsigned char LineData[65535],LineText[65535];
 
 int k, unprot0e;
-int inREM = 0;
+int xxREM = 0;
 int bin1stREM = 0;
 int binallREM = 0;
 long flen;
@@ -936,6 +936,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 {
     int i = 0, o = 0;
 	int j,k;
+	int inREM = 0;
 
     char ccf[64];
 	char *cc;
@@ -947,7 +948,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 
     for(i=0;i<LineLen;i++)
     {
-	  if (!inREM){
+	  if (!xxREM){
         switch (In[i])
         {
         case 6:
@@ -1167,6 +1168,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\a"; break;
+              case 2:  cc="\\_A"; break;
               case 3:  cc="{A}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1175,6 +1177,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\b"; break;
+              case 2:  cc="\\_B"; break;
               case 3:  cc="{B}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1183,6 +1186,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\c"; break;
+              case 2:  cc="\\_C"; break;
               case 3:  cc="{C}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1191,6 +1195,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\d"; break;
+              case 2:  cc="\\_D"; break;
               case 3:  cc="{D}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1199,6 +1204,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\e"; break;
+              case 2:  cc="\\_E"; break;
               case 3:  cc="{E}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1207,6 +1213,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\f"; break;
+              case 2:  cc="\\_F"; break;
               case 3:  cc="{F}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1215,6 +1222,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\g"; break;
+              case 2:  cc="\\_G"; break;
               case 3:  cc="{G}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1223,6 +1231,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\h"; break;
+              case 2:  cc="\\_H"; break;
               case 3:  cc="{H}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1231,6 +1240,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\i"; break;
+              case 2:  cc="\\_I"; break;
               case 3:  cc="{I}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1239,6 +1249,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\j"; break;
+              case 2:  cc="\\_J"; break;
               case 3:  cc="{J}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1247,6 +1258,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\k"; break;
+              case 2:  cc="\\_K"; break;
               case 3:  cc="{K}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1255,6 +1267,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\l"; break;
+              case 2:  cc="\\_L"; break;
               case 3:  cc="{L}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1263,6 +1276,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\m"; break;
+              case 2:  cc="\\_M"; break;
               case 3:  cc="{M}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1271,6 +1285,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\n"; break;
+              case 2:  cc="\\_N"; break;
               case 3:  cc="{N}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1279,6 +1294,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\o"; break;
+              case 2:  cc="\\_O"; break;
               case 3:  cc="{O}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1287,6 +1303,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\p"; break;
+              case 2:  cc="\\_P"; break;
               case 3:  cc="{P}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1295,6 +1312,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\q"; break;
+              case 2:  cc="\\_Q"; break;
               case 3:  cc="{Q}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1303,6 +1321,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\r"; break;
+              case 2:  cc="\\_R"; break;
               case 3:  cc="{R}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1311,6 +1330,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\s"; break;
+              case 2:  cc="\\_S"; break;
               case 3:  cc="{S}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1319,6 +1339,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\t"; break;
+              case 2:  cc="\\_T"; break;
               case 3:  cc="{T}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1327,6 +1348,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             switch (colorcode) {
               case 0:  break;
               default: cc="\\u"; break;
+              case 2:  cc="\\_U"; break;
               case 3:  cc="{U}"; break;
             }
             if (colorcode) ConCat(Out,&o, cc);
@@ -1540,7 +1562,8 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             break;
         case 234:
             ConCat(Out,&o," REM ");
-            if (bin1stREM || binallREM) inREM= 1;
+            inREM= 1;
+            if (bin1stREM || binallREM) xxREM= 1;
 			if (bin1stREM) bin1stREM= 0;
             break;
         case 235:
@@ -1611,7 +1634,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 
         }
       }
-	  else {	//inREM= 1
+	  else {	//xxREM= 1
 
         switch (In[i])
         {
@@ -1629,7 +1652,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 		}
 	  }
     }
-	inREM= 0;
+	xxREM= 0;
 	
     Out[o]= 0;
     return strlen(Out);
@@ -1676,9 +1699,9 @@ int TZXPROC()
                     if (LineLen > ProgLen -5) LineLen= ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
 			
 					memcpy(LineData,mem+5 +0x13 +5 +5 +j, LineLen);
-			        LineData[LineLen]= 0; // Terminate the line data
+			        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 					
-			        DeTokenize(LineData, LineLen, LineText);
+			        DeTokenize(LineData, LineLen -1, LineText);
 					printf("%d%s\n", LineNum, LineText);
 					
 					j= j +2 +2 +LineLen;      
@@ -1697,9 +1720,9 @@ int TZXPROC()
 				        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
 						if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
 						memcpy(LineData,mem+19 +0x13 +19 +5 +j, LineLen);
-				        LineData[LineLen]= 0; // Terminate the line data
+				        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 						
-				        DeTokenize(LineData, LineLen, LineText);
+				        DeTokenize(LineData, LineLen -1, LineText);
 						printf("%d%s\n",LineNum, LineText);
 						j= j +2 +2 +LineLen;      
 				    }
@@ -1850,9 +1873,9 @@ void TAPPROC()
                 if (LineLen > ProgLen -5) LineLen= ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
 				
 				memcpy(LineData,mem +0x1C +j ,LineLen);
-		        LineData[LineLen]= 0; // Terminate the line data
+		        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 		
-		        DeTokenize(LineData, LineLen, LineText);
+		        DeTokenize(LineData, LineLen -1, LineText);
 		
                 printf("%d%s\n", LineNum, LineText);
 				j= j +2 +2 +LineLen;
@@ -1903,9 +1926,9 @@ int SPPROC()
 		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, mem +pos +4, LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 
-        DeTokenize(LineData, LineLen, LineText);
+        DeTokenize(LineData, LineLen -1, LineText);
         printf("%d%s\n", LineNum, LineText);
 		
 		pos= pos +2 +2 +LineLen; 	       
@@ -1958,9 +1981,9 @@ int SNAPROC()
 		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, mem +pos +4 ,LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 
-        DeTokenize(LineData, LineLen, LineText);
+        DeTokenize(LineData, LineLen -1, LineText);
         printf("%d%s\n",LineNum,  LineText);
 		
 		pos= pos +2 +2 +LineLen; 	       
@@ -2133,9 +2156,9 @@ unsigned short int unpack(unsigned char *inp, unsigned char *outp, unsigned shor
         if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, buf3 +pos +4, LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 
-        DeTokenize(LineData, LineLen, LineText);
+        DeTokenize(LineData, LineLen -1, LineText);
         printf("%d%s\n", LineNum, LineText);
 		
 		pos= pos +2 +2 +LineLen; 	       
@@ -2163,9 +2186,9 @@ void BASPROC()
         if (LineLen > flen -pos -4) flen= ProgLen - pos -4;
 
 		memcpy(LineData, mem +pos +4, LineLen);
-        LineData[LineLen]= 0; // Terminate the line data
+        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 		
-        DeTokenize(LineData, LineLen, LineText);
+        DeTokenize(LineData, LineLen -1, LineText);
 		printf("%d%s\n", LineNum, LineText);
 		
 		pos= pos +2 +2 +LineLen;      
@@ -2197,7 +2220,7 @@ int OPROC()
 
 		LineLen= zlinelen(mem +pos +2);
 		memcpy(LineData, mem +pos +2 ,LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen]= 0; // Terminate the line data, remove End Of Line Mark
 
         printf("%4d", LineNum);
         DeTokenizeP(LineLen);
@@ -2235,7 +2258,7 @@ int PPROC()
 		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, mem +pos +4 ,LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen]= 0; // Terminate the line data
 
         printf("%4d", LineNum);
         DeTokenizeP(LineLen);
@@ -2273,7 +2296,7 @@ int P81PROC()
 		if (LineLen > flen -pos -4) LineLen= flen -pos -4;
 
 		memcpy(LineData, mem +pos +4 ,LineLen);
-        LineData[LineLen]= 0; //Terminate the line data
+        LineData[LineLen]= 0; // Terminate the line data
 
         printf("%4d", LineNum);
         DeTokenizeP(LineLen);
