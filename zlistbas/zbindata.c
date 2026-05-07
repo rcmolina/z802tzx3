@@ -7,46 +7,37 @@
 
 int main(int argc, char **argv) {
 
-	int address=60000;
-	int hex=1;
-	int bytes=0,line=10, procline,i;
-	struct stat file_info;
-	int fd;
-	unsigned char c;
+int address=60000;
+int hex=1;
+int rem=0;
+int bytes=0,line=10, procline,i;
+struct stat file_info;
+int fd;
+unsigned char c;
 
-	if ((argc<2) || (argc>4)) {
-		printf("Usage:\t%s binfile [addr] [dnumline|xnumline] \n\n",argv[0]);
-		return -1;
-	}
+if ((argc<2) || (argc>3)) {
+	printf("Usage:\t%s binfile [addr] [Dnumline|Xnumline|Rusraddr] \n\n",argv[0]);
+	return -1;
+}
 
-	else if (argc==3) {
-		    if (toupper(argv[2][0])=='D') {hex=0;line= strtol(argv[2] +1,NULL,0);}
-			else if (toupper(argv[2][0])=='X') {hex=1;line= strtol(argv[2] +1,NULL,0);}
-			else address=strtol(argv[2],NULL,0);
-	}
-	else if (argc==4) {
-		    if (toupper(argv[2][0])=='D') {hex=0;line= strtol(argv[2] +1,NULL,0);}
-			else if (toupper(argv[2][0])=='X') {hex=1;line= strtol(argv[2] +1,NULL,0);}
-			else address=strtol(argv[2],NULL,0);	   
+if (toupper(argv[2][0])=='D') {hex=0;line= strtol(argv[2] +1,NULL,0);}
+else if (toupper(argv[2][0])=='X') {hex=1;line= strtol(argv[2] +1,NULL,0);}
+else if (toupper(argv[2][0])=='R') {rem=1;hex=1;line= strtol(argv[2] +1,NULL,0);}
+else address=strtol(argv[2],NULL,0);
 
-			if (toupper(argv[3][0])=='D') {hex=0;line= strtol(argv[3] +1,NULL,0);}
-			else if (toupper(argv[3][0])=='X') {hex=1;line= strtol(argv[3] +1,NULL,0);}
-			else address=strtol(argv[3],NULL,0);
-	}
+if (stat(argv[1],&file_info)<0) {
+	fprintf(stderr,"Could not stat file %s\n\n",argv[1]);
+	return -1;
+}
+bytes=(int)file_info.st_size;
 
-	if (stat(argv[1],&file_info)<0) {
-		fprintf(stderr,"Could not stat file %s\n\n",argv[1]);
-		return -1;
-	}
-	bytes=(int)file_info.st_size;
+fd=open(argv[1],O_RDONLY|O_BINARY);
+if (fd<0) {
+	fprintf(stderr,"Could not open file %s\n\n",argv[1]);
+	return -1;
+}
 
-	fd=open(argv[1],O_RDONLY|O_BINARY);
-	if (fd<0) {
-		fprintf(stderr,"Could not open file %s\n\n",argv[1]);
-		return -1;
-	}
-
-if (hex) {
+if (!rem && hex) {
     printf("%d GO TO %d\n", line, line+60);
     line+=10;
     procline=line;
@@ -105,7 +96,7 @@ if (hex) {
     }		 
 
 }
-else {
+else if (!rem && !hex) {
     printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", line, line+10, bytes-1, address);
     line+=10;
     for(i=0;i<bytes;i++) {
@@ -119,7 +110,17 @@ else {
        else printf("\n");
     }
 }
-
+else {	//rem
+    printf("1 REM ");
+    printf("\\{0x21}\\{0xDC}\\{0x5C}\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x00}\\{0x08}\\{0xED}\\{0xB0}\\{0xC9}",line%256, line/256);
+    for(i=0;i<bytes;i++) {
+       read(fd,&c,1);
+       printf("\\{0x%02X}",c);
+	}
+	printf("\n");
+	printf("2 RANDOMIZE USR VAL \"23760\"\n");
+	printf("3 RANDOMIZE USR VAL \"%d\"\n", line);
+}
 close(fd);
 return 0;
 }
