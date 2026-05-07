@@ -937,6 +937,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     int i = 0, o = 0;
 	int j,k;
 	int inREM = 0;
+	int PrintUDGCode= 0;
 
     char ccf[64];
 	char *cc;
@@ -946,8 +947,19 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     float zxfp;
 #endif
 
+void PrintUDGFormats() {
+    switch (colorcode) {
+      case 0:  break;
+      default: sprintf(ccf, "\\%c", In[i] -47); break;
+      case 2:  sprintf(ccf, "\\_%c", In[i] -79); break;
+      case 3:  sprintf(ccf, "{%c}", In[i] -79); break;
+    }
+    if (colorcode) ConCat(Out,&o, ccf);
+}
+
     for(i=0;i<LineLen;i++)
     {
+      PrintUDGCode= 0;
 	  if (!xxREM){
         switch (In[i])
         {
@@ -1165,193 +1177,67 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
             ConCat(Out,&o,"\\::");
             break;
         case 144:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\a"; break;
-              case 2:  cc="\\_A"; break;
-              case 3:  cc="{A}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 145:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\b"; break;
-              case 2:  cc="\\_B"; break;
-              case 3:  cc="{B}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 146:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\c"; break;
-              case 2:  cc="\\_C"; break;
-              case 3:  cc="{C}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 147:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\d"; break;
-              case 2:  cc="\\_D"; break;
-              case 3:  cc="{D}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 148:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\e"; break;
-              case 2:  cc="\\_E"; break;
-              case 3:  cc="{E}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 149:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\f"; break;
-              case 2:  cc="\\_F"; break;
-              case 3:  cc="{F}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 150:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\g"; break;
-              case 2:  cc="\\_G"; break;
-              case 3:  cc="{G}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 151:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\h"; break;
-              case 2:  cc="\\_H"; break;
-              case 3:  cc="{H}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 152:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\i"; break;
-              case 2:  cc="\\_I"; break;
-              case 3:  cc="{I}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 153:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\j"; break;
-              case 2:  cc="\\_J"; break;
-              case 3:  cc="{J}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 154:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\k"; break;
-              case 2:  cc="\\_K"; break;
-              case 3:  cc="{K}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 155:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\l"; break;
-              case 2:  cc="\\_L"; break;
-              case 3:  cc="{L}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 156:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\m"; break;
-              case 2:  cc="\\_M"; break;
-              case 3:  cc="{M}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 157:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\n"; break;
-              case 2:  cc="\\_N"; break;
-              case 3:  cc="{N}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 158:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\o"; break;
-              case 2:  cc="\\_O"; break;
-              case 3:  cc="{O}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 159:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\p"; break;
-              case 2:  cc="\\_P"; break;
-              case 3:  cc="{P}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 160:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\q"; break;
-              case 2:  cc="\\_Q"; break;
-              case 3:  cc="{Q}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 161:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\r"; break;
-              case 2:  cc="\\_R"; break;
-              case 3:  cc="{R}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 162:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\s"; break;
-              case 2:  cc="\\_S"; break;
-              case 3:  cc="{S}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 163:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\t"; break;
-              case 2:  cc="\\_T"; break;
-              case 3:  cc="{T}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 164:
-            switch (colorcode) {
-              case 0:  break;
-              default: cc="\\u"; break;
-              case 2:  cc="\\_U"; break;
-              case 3:  cc="{U}"; break;
-            }
-            if (colorcode) ConCat(Out,&o, cc);
+            PrintUDGCode= 1;
             break;
         case 165:
             ConCat(Out,&o,"RND");
@@ -1635,10 +1521,6 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
         }
       }
 	  else {	//xxREM= 1
-
-        switch (In[i])
-        {
-        default:		  
 		    switch (colorcode) {
               case 0:  break;
 			  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
@@ -1649,9 +1531,10 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
 	          case 6:  sprintf(ccf, "%02X",In[i]); break;
 	        }
             if (colorcode) ConCat(Out,&o, ccf);
-		}
 	  }
-    }
+
+    if (PrintUDGCode) PrintUDGFormats();
+    } //end of for
 	xxREM= 0;
 	
     Out[o]= 0;
