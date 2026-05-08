@@ -58,7 +58,7 @@ lseek (fd, 0, SEEK_END);
 bytes=(int)tell(fd);
 lseek (fd, 0, SEEK_SET);
 
-if ( !(remspec ||remzx81) && hex ) {
+if ( !remspec && !remzx81 && hex ) {
     printf("%d GO TO %d\n", line, line+60);
     line+=10;
     procline=line;
@@ -117,7 +117,7 @@ if ( !(remspec ||remzx81) && hex ) {
     }		 
 
 }
-else if ( !(remspec ||remzx81) && !hex ) {
+else if ( !remspec && !remzx81 && !hex ) {
     printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", line, line+10, bytes-1, address);
     line+=10;
     for(i=0;i<bytes;i++) {
