@@ -112,7 +112,7 @@ else if (!rem && !hex) {
 }
 else {	//rem
     printf("1 REM ");
-    if (line >0) {
+    if (line >= 16384) {
 	  printf("\\{0x21}\\{0xDC}\\{0x5C}"); //HL
 	  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", line%256, line/256, bytes%256, bytes/256); //DE, BC
 	  printf("\\{0xED}\\{0xB0}\\{0xC9}"); // LDIR, RET
@@ -122,7 +122,7 @@ else {	//rem
        printf("\\{0x%02X}",c);
 	}
 	printf("\n");
-    if (line >0) {	
+    if (line >= 16384) {	
 	  printf("2 RANDOMIZE USR VAL \"23760\"\n");
 	  printf("3 RANDOMIZE USR VAL \"%d\"\n", line);
 	}	  
