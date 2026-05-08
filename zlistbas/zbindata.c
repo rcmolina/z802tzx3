@@ -112,14 +112,20 @@ else if (!rem && !hex) {
 }
 else {	//rem
     printf("1 REM ");
-    printf("\\{0x21}\\{0xDC}\\{0x5C}\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}\\{0xED}\\{0xB0}\\{0xC9}", line%256, line/256, bytes%256, bytes/256);
+    if (line >0) {
+	  printf("\\{0x21}\\{0xDC}\\{0x5C}"); //HL
+	  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", line%256, line/256, bytes%256, bytes/256); //DE, BC
+	  printf("\\{0xED}\\{0xB0}\\{0xC9}"); // LDIR, RET
+	}
     for(i=0;i<bytes;i++) {
        read(fd,&c,1);
        printf("\\{0x%02X}",c);
 	}
 	printf("\n");
-	printf("2 RANDOMIZE USR VAL \"23760\"\n");
-	printf("3 RANDOMIZE USR VAL \"%d\"\n", line);
+    if (line >0) {	
+	  printf("2 RANDOMIZE USR VAL \"23760\"\n");
+	  printf("3 RANDOMIZE USR VAL \"%d\"\n", line);
+	}	  
 }
 close(fd);
 return 0;
