@@ -4,14 +4,17 @@
 //#include <unistd.h>
 //#include <sys/stat.h>
 
-
 int main(int argc, char **argv) {
 
 int address=60000;
 int hex=1;
-int remspec=0;
-int remzx81=0;
-int bytes=0,line=10, procline,i;
+int remspec= 0;
+int remzx81= 0;
+int line= 10;
+int bytes= 0;
+int apos= 0;
+int procline, i;
+
 //struct stat file_info;
 int fd;
 unsigned char c;
@@ -21,26 +24,22 @@ if ( argc<2 || argc>4 ) {
 	return -1;
 }
 else if (argc==3) {
-	if (toupper(argv[2][0])=='D') {hex=0;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='X') {hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='R') {remspec=1;hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else line=strtol(argv[2],NULL,0);
+	if ( argv[2][0] >= 48 && argv[2][0] <= 57) line=strtol(argv[2],NULL,0);
+	else apos= 2;
 }
 else if (argc==4) {
-    if (toupper(argv[2][0])=='D') {hex=0;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='X') {hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='R') {remspec=1;hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else if (toupper(argv[2][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[2] +1,NULL,0);}
-	else line=strtol(argv[2],NULL,0);	    
-
-	if (toupper(argv[3][0])=='D') {hex=0;address= strtol(argv[3] +1,NULL,0);}
-	else if (toupper(argv[3][0])=='X') {hex=1;address= strtol(argv[3] +1,NULL,0);}
-	else if (toupper(argv[3][0])=='R') {remspec=1;hex=1;address= strtol(argv[3] +1,NULL,0);}
-	else if (toupper(argv[3][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[3] +1,NULL,0);}
-	else line=strtol(argv[3],NULL,0);
+	if ( argv[2][0] >= 48 && argv[2][0] <= 57) line=strtol(argv[2],NULL,0);
+	else apos= 2;
+	if ( argv[3][0] >= 48 && argv[3][0] <= 57) line=strtol(argv[3],NULL,0);
+	else apos= 3;	   
 }
-
+if (apos){
+	if (toupper(argv[apos][0])=='D') {hex=0;address= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='X') {hex=1;address= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='R') {remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
+	else return -1;
+}
 /*
 if (stat(argv[1],&file_info)<0) {
 	fprintf(stderr,"Could not stat file %s\n\n",argv[1]);
