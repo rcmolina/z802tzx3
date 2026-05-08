@@ -32,7 +32,7 @@ typedef long long  int64_t;
 typedef unsigned long long   uint64_t;
 */
 
-#define PROG_VER "1.20"
+#define PROG_VER "1.21"
 
 int inFirstLineREM; // 1=First line is a REM and we are on the first line
 int onlyFirstLineREM = 0; // 1=Only preserve codes in a first line REM, 0=Preserve codes everywhere 
@@ -937,6 +937,7 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     int i = 0, o = 0;
 	int j,k;
 	int inREM = 0;
+	int PrintHexCode= 0;
 	int PrintUDGCode= 0;
 
     char ccf[64];
@@ -947,6 +948,19 @@ int DeTokenize(unsigned char *In,int LineLen,unsigned char *Out)
     float zxfp;
 #endif
 
+void PrintHexFormats() {
+    switch (colorcode) {
+      case 0:  break;
+	  default: sprintf(ccf, "\\{%d}",In[i]); break;
+      case 2:  sprintf(ccf, "\\%02X",In[i]); break;
+      case 3:  sprintf(ccf, "{%02X}",In[i]); break;
+      case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
+      case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
+      case 6:  sprintf(ccf, "%02X",In[i]); break;
+	}
+    if (colorcode) ConCat(Out,&o, ccf);
+}
+
 void PrintUDGFormats() {
     switch (colorcode) {
       case 0:  break;
@@ -956,171 +970,202 @@ void PrintUDGFormats() {
     }
     if (colorcode) ConCat(Out,&o, ccf);
 }
-
+	 
     for(i=0;i<LineLen;i++)
     {
+      PrintHexCode= 0;
       PrintUDGCode= 0;
 	  if (!xxREM){
         switch (In[i])
         {
         case 6:
         case 8:
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{%d}",In[i]); break;
-	          case 2:  sprintf(ccf, "\\%02X",In[i]); break;
-	          case 3:  sprintf(ccf, "{%02X}",In[i]); break;
-	          case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
-	          case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
-	        }
-            if (colorcode) ConCat(Out,&o, ccf);	  	 
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{%d}",In[i]); break;
+		          case 2:  sprintf(ccf, "\\%02X",In[i]); break;
+		          case 3:  sprintf(ccf, "{%02X}",In[i]); break;
+		          case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
+		          case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ %d;\"",In[i]); break;
+		        }
+	            if (colorcode) ConCat(Out,&o, ccf);	  	 
+			}
+			else PrintHexCode= 1;
             break;
    	      
         case 14:
-            if (unprot0e) {
-		       switch (colorcode) {
-                 case 0:  sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-                 default: //sprintf(ccf, "\\{14}\\{%d}\\{%d}\\{%d}\\{%d}\\{%d}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-	             case 2:  //sprintf(ccf, "\\0E\\%02X\\%02X\\%02X\\%02X\\%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-	             case 3:  //sprintf(ccf, "{0E}{%02X}{%02X}{%02X}{%02X}{%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-	             case 4:  //sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-	             case 5:  //sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
-	             case 6:
-                 #ifdef FPCALCS
-
-                   zxfp= ldexp( (16777216*(float)(In[i+2]|128) +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128 );
-                   if (!In[i+1])
-                     sprintf(ccf, "_%d",In[i+3] +256*In[i+4]);
-                   else if (In[i+2] < 128)
-                     sprintf(ccf, "_%g", zxfp );
-                   else
-                     sprintf(ccf, "_-%g", zxfp );
-
-                   if (In[i+1] && !(int)zxfp ){
-                      if (In[i+2] < 128)
-                        sprintf(ccf, "%s%s", "_",ccf+2);
-                      else
-                        sprintf(ccf, "%s%s", "_-",ccf+3);
-                   }
-                   break;
-				   
-                 #else
-
-                   if (!In[i+1]) sprintf(ccf, "_%d",In[i+3] +256*In[i+4]);
-                   else sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);
-                   break;
-
-                 #endif
-
-	           }
-			   ConCat(Out,&o, ccf);
-            }
-            i += 5;   /* Skip encoded floating point number */
+            if (!inREM) {
+	            if (unprot0e) {
+			       switch (colorcode) {
+	                 case 0:  sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+	                 default: //sprintf(ccf, "\\{14}\\{%d}\\{%d}\\{%d}\\{%d}\\{%d}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+		             case 2:  //sprintf(ccf, "\\0E\\%02X\\%02X\\%02X\\%02X\\%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+		             case 3:  //sprintf(ccf, "{0E}{%02X}{%02X}{%02X}{%02X}{%02X}",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+		             case 4:  //sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+		             case 5:  //sprintf(ccf, "\\#014\\#%03d\\#%03d\\#%03d\\#%03d\\#%03d",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]); break;
+		             case 6:
+	                 #ifdef FPCALCS
+	
+	                   zxfp= ldexp( (16777216*(float)(In[i+2]|128) +65536*(float)In[i+3] +256*(float)In[i+4] +(float)In[i+5])/4294967296ULL, In[i+1]-128 );
+	                   if (!In[i+1])
+	                     sprintf(ccf, "_%d",In[i+3] +256*In[i+4]);
+	                   else if (In[i+2] < 128)
+	                     sprintf(ccf, "_%g", zxfp );
+	                   else
+	                     sprintf(ccf, "_-%g", zxfp );
+	
+	                   if (In[i+1] && !(int)zxfp ){
+	                      if (In[i+2] < 128)
+	                        sprintf(ccf, "%s%s", "_",ccf+2);
+	                      else
+	                        sprintf(ccf, "%s%s", "_-",ccf+3);
+	                   }
+	                   break;
+					   
+	                 #else
+	
+	                   if (!In[i+1]) sprintf(ccf, "_%d",In[i+3] +256*In[i+4]);
+	                   else sprintf(ccf, "__%02X%02X%02X%02X%02X",In[i+1],In[i+2],In[i+3],In[i+4],In[i+5]);
+	                   break;
+	
+	                 #endif
+	
+		           }
+				   ConCat(Out,&o, ccf);
+	            }
+	            i += 5;   /* Skip encoded floating point number */
+			}
+			else PrintHexCode= 1;
             break;
         case 16:
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{16}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\10\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{INK %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#016\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{i%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 16;CHR$ %d;\"",In[i+1]); break;
-	        }	   	    		
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded INK */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{16}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\10\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{INK %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#016\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{i%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 16;CHR$ %d;\"",In[i+1]); break;
+		        }	   	    		
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded INK */
+			}
+			else PrintHexCode= 1;
             break;
         case 17:
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{17}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\11\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{PAPER %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#017\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{p%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 17;CHR$ %d;\"",In[i+1]); break;
-	        }	   	    	
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded PAPER */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{17}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\11\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{PAPER %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#017\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{p%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 17;CHR$ %d;\"",In[i+1]); break;
+		        }	   	    	
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded PAPER */
+			}
+			else PrintHexCode= 1;
             break;
         case 18:
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{18}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\12\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{FLASH %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#018\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{f%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 18;CHR$ %d;\"",In[i+1]); break;
-	        }	   
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded FLASH */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{18}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\12\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{FLASH %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#018\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{f%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 18;CHR$ %d;\"",In[i+1]); break;
+		        }	   
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded FLASH */
+			}
+			else PrintHexCode= 1;
             break;
         case 19:
-		    switch (colorcode) { 	  
-              case 0:  break;
-			  default: sprintf(ccf, "\\{19}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\13\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{BRIGHT %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#019\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{b%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 19;CHR$ %d;\"",In[i+1]); break;
-	        }	   
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded BRIGHT */
+            if (!inREM) {
+			    switch (colorcode) { 	  
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{19}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\13\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{BRIGHT %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#019\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{b%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 19;CHR$ %d;\"",In[i+1]); break;
+		        }	   
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded BRIGHT */
+			}
+			else PrintHexCode= 1;
             break;
         case 20:
-		    switch (colorcode) {  	    
-              case 0:  break;
-			  default: sprintf(ccf, "\\{20}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\14\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{INVERSE %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#020\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{v%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 20;CHR$ %d;\"",In[i+1]); break;
-	        }	   
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded INVERSE */
+            if (!inREM) {
+			    switch (colorcode) {  	    
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{20}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\14\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{INVERSE %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#020\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{v%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 20;CHR$ %d;\"",In[i+1]); break;
+		        }	   
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded INVERSE */
+			}
+			else PrintHexCode= 1;
             break;
         case 21:
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{21}\\{%d}",In[i+1]); break;
-	          case 2:  sprintf(ccf, "\\15\\%02X",In[i+1]); break;
-	          case 3:  sprintf(ccf, "{OVER %d}",In[i+1]); break;
-	          case 4:  sprintf(ccf, "\\#021\\#%03d",In[i+1]); break;
-	          case 5:  sprintf(ccf, "\\{o%d}",In[i+1]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 21;CHR$ %d;\"",In[i+1]); break;
-	        }	   
-            if (colorcode) ConCat(Out,&o, ccf);
-            i++;      /* skip value for embedded OVER */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+				  default: sprintf(ccf, "\\{21}\\{%d}",In[i+1]); break;
+		          case 2:  sprintf(ccf, "\\15\\%02X",In[i+1]); break;
+		          case 3:  sprintf(ccf, "{OVER %d}",In[i+1]); break;
+		          case 4:  sprintf(ccf, "\\#021\\#%03d",In[i+1]); break;
+		          case 5:  sprintf(ccf, "\\{o%d}",In[i+1]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 21;CHR$ %d;\"",In[i+1]); break;
+		        }	   
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i++;      /* skip value for embedded OVER */
+			}
+			else PrintHexCode= 1;
             break;
         case 22:
-		    switch (colorcode) {
-              case 0:  break;
-	          default: sprintf(ccf, "\\{22}\\{%d}\\{%d}",In[i+1],In[i+2]); break;
-	          case 2:  sprintf(ccf, "\\16\\%02X\\%02X",In[i+1],In[i+2]); break;
-	          case 3:  sprintf(ccf, "{AT %d,%d}",In[i+1],In[i+2]); break;  
-	          case 4:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;  
-	          case 5:  sprintf(ccf, "\\{a%d,%d}",In[i+1],In[i+2]); break;
-	          case 6:  sprintf(ccf, "\";CHR$ 22;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;		   
-	        }	  	   	   
-            if (colorcode) ConCat(Out,&o, ccf);
-            i += 2;   /* Skip xy for embedded AT */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+		          default: sprintf(ccf, "\\{22}\\{%d}\\{%d}",In[i+1],In[i+2]); break;
+		          case 2:  sprintf(ccf, "\\16\\%02X\\%02X",In[i+1],In[i+2]); break;
+		          case 3:  sprintf(ccf, "{AT %d,%d}",In[i+1],In[i+2]); break;  
+		          case 4:  sprintf(ccf, "\\#022\\#%03d\\#%03d",In[i+1],In[i+2]); break;  
+		          case 5:  sprintf(ccf, "\\{a%d,%d}",In[i+1],In[i+2]); break;
+		          case 6:  sprintf(ccf, "\";CHR$ 22;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;		   
+		        }	  	   	   
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i += 2;   /* Skip xy for embedded AT */
+			}
+			else PrintHexCode= 1;
             break;
         case 23:
-		    switch (colorcode) {
-              case 0:  break;
-	          default: sprintf(ccf, "\\{23}\\{%d}\\{%d}",In[i+1],In[i+2]); break;
-	          case 2:  sprintf(ccf, "\\17\\%02X\\%02X",In[i+1],In[i+2]); break;
-	          case 3:  sprintf(ccf, "{TAB %d}",In[i+1]+256*In[i+2]); break;   	       	     
-	          case 4:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;
-	          case 5:  sprintf(ccf, "\\{t%d}",In[i+1]+256*In[i+2]); break;    
-	          case 6:  sprintf(ccf, "\";CHR$ 23;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;
-	        }
-            if (colorcode) ConCat(Out,&o, ccf);
-            i += 2;   /* Skip nn for embedded TAB */
+            if (!inREM) {
+			    switch (colorcode) {
+	              case 0:  break;
+		          default: sprintf(ccf, "\\{23}\\{%d}\\{%d}",In[i+1],In[i+2]); break;
+		          case 2:  sprintf(ccf, "\\17\\%02X\\%02X",In[i+1],In[i+2]); break;
+		          case 3:  sprintf(ccf, "{TAB %d}",In[i+1]+256*In[i+2]); break;   	       	     
+		          case 4:  sprintf(ccf, "\\#023\\#%03d\\#%03d",In[i+1],In[i+2]); break;
+		          case 5:  sprintf(ccf, "\\{t%d}",In[i+1]+256*In[i+2]); break;    
+		          case 6:  sprintf(ccf, "\";CHR$ 23;CHR$ %d;CHR$ %d;\"",In[i+1],In[i+2]); break;
+		        }
+	            if (colorcode) ConCat(Out,&o, ccf);
+	            i += 2;   /* Skip nn for embedded TAB */
+			}
+			else PrintHexCode= 1;
             break;
         case 92:
             ConCat(Out,&o,"\\\\");
@@ -1240,300 +1285,394 @@ void PrintUDGFormats() {
             PrintUDGCode= 1;
             break;
         case 165:
-            ConCat(Out,&o,"RND");
+            if (!inREM) ConCat(Out,&o,"RND");
+			else PrintHexCode= 1;
             break;
         case 166:
-            ConCat(Out,&o,"INKEY$");
+            if (!inREM) ConCat(Out,&o,"INKEY$");
+			else PrintHexCode= 1;
             break;
         case 167:
-            ConCat(Out,&o,"PI");
+            if (!inREM) ConCat(Out,&o,"PI");
+			else PrintHexCode= 1;
             break;
         case 168:
-            ConCat(Out,&o,"FN ");
+            if (!inREM) ConCat(Out,&o,"FN ");
+			else PrintHexCode= 1;
             break;
         case 169:
-            ConCat(Out,&o,"POINT ");
+            if (!inREM) ConCat(Out,&o,"POINT ");
+			else PrintHexCode= 1;
             break;
         case 170:
-            ConCat(Out,&o,"SCREEN$ ");
+            if (!inREM) ConCat(Out,&o,"SCREEN$ ");
+			else PrintHexCode= 1;
             break;
         case 171:
-            ConCat(Out,&o,"ATTR ");
+            if (!inREM) ConCat(Out,&o,"ATTR ");
+			else PrintHexCode= 1;
             break;
         case 172:
-            ConCat(Out,&o,"AT ");
+            if (!inREM) ConCat(Out,&o,"AT ");
+			else PrintHexCode= 1;
             break;
         case 173:
-            ConCat(Out,&o,"TAB ");
+            if (!inREM) ConCat(Out,&o,"TAB ");
+			else PrintHexCode= 1;
             break;
         case 174:
-            ConCat(Out,&o,"VAL$ ");
+            if (!inREM) ConCat(Out,&o,"VAL$ ");
+			else PrintHexCode= 1;
             break;
         case 175:
-            ConCat(Out,&o,"CODE ");
+            if (!inREM) ConCat(Out,&o,"CODE ");
+			else PrintHexCode= 1;
             break;
         case 176:
-            ConCat(Out,&o,"VAL ");
+            if (!inREM) ConCat(Out,&o,"VAL ");
+			else PrintHexCode= 1;
             break;
         case 177:
-            ConCat(Out,&o,"LEN ");
+            if (!inREM) ConCat(Out,&o,"LEN ");
+			else PrintHexCode= 1;
             break;
         case 178:
-            ConCat(Out,&o,"SIN ");
+            if (!inREM) ConCat(Out,&o,"SIN ");
+			else PrintHexCode= 1;
             break;
         case 179:
-            ConCat(Out,&o,"COS ");
+            if (!inREM) ConCat(Out,&o,"COS ");
+			else PrintHexCode= 1;
             break;
         case 180:
-            ConCat(Out,&o,"TAN ");
+            if (!inREM) ConCat(Out,&o,"TAN ");
+			else PrintHexCode= 1;
             break;
         case 181:
-            ConCat(Out,&o,"ASN ");
+            if (!inREM) ConCat(Out,&o,"ASN ");
+			else PrintHexCode= 1;
             break;
         case 182:
-            ConCat(Out,&o,"ACS ");
+            if (!inREM) ConCat(Out,&o,"ACS ");
+			else PrintHexCode= 1;
             break;
         case 183:
-            ConCat(Out,&o,"ATN ");
+            if (!inREM) ConCat(Out,&o,"ATN ");
+			else PrintHexCode= 1;
             break;
         case 184:
-            ConCat(Out,&o,"LN ");
+            if (!inREM) ConCat(Out,&o,"LN ");
+			else PrintHexCode= 1;
             break;
         case 185:
-            ConCat(Out,&o,"EXP ");
+            if (!inREM) ConCat(Out,&o,"EXP ");
+			else PrintHexCode= 1;
             break;
         case 186:
-            ConCat(Out,&o,"INT ");
+            if (!inREM) ConCat(Out,&o,"INT ");
+			else PrintHexCode= 1;
             break;
         case 187:
-            ConCat(Out,&o,"SQR ");
+            if (!inREM) ConCat(Out,&o,"SQR ");
+			else PrintHexCode= 1;
             break;
         case 188:
-            ConCat(Out,&o,"SGN ");
+            if (!inREM) ConCat(Out,&o,"SGN ");
+			else PrintHexCode= 1;
             break;
         case 189:
-            ConCat(Out,&o,"ABS ");
+            if (!inREM) ConCat(Out,&o,"ABS ");
+			else PrintHexCode= 1;
             break;
         case 190:
-            ConCat(Out,&o,"PEEK ");
+            if (!inREM) ConCat(Out,&o,"PEEK ");
+			else PrintHexCode= 1;
             break;
         case 191:
-            ConCat(Out,&o,"IN ");
+            if (!inREM) ConCat(Out,&o,"IN ");
+			else PrintHexCode= 1;
             break;
         case 192:
-            ConCat(Out,&o,"USR ");
+            if (!inREM) ConCat(Out,&o,"USR ");
+			else PrintHexCode= 1;
             break;
         case 193:
-            ConCat(Out,&o,"STR$ ");
+            if (!inREM) ConCat(Out,&o,"STR$ ");
+			else PrintHexCode= 1;
             break;
         case 194:
-            ConCat(Out,&o,"CHR$ ");
+            if (!inREM) ConCat(Out,&o,"CHR$ ");
+			else PrintHexCode= 1;
             break;
         case 195:
-            ConCat(Out,&o,"NOT ");
+            if (!inREM) ConCat(Out,&o,"NOT ");
+			else PrintHexCode= 1;
             break;
         case 196:
-            ConCat(Out,&o,"BIN ");
+            if (!inREM) ConCat(Out,&o,"BIN ");
+			else PrintHexCode= 1;
             break;
         case 197:
-            ConCat(Out,&o," OR ");
+            if (!inREM) ConCat(Out,&o," OR ");
+			else PrintHexCode= 1;
             break;
         case 198:
-            ConCat(Out,&o," AND ");
+            if (!inREM) ConCat(Out,&o," AND ");
+			else PrintHexCode =1;
             break;
         case 199:
-            ConCat(Out,&o,"<=");
+            if (!inREM) ConCat(Out,&o,"<=");
+			else PrintHexCode= 1;
             break;
         case 200:
-            ConCat(Out,&o,">=");
+            if (!inREM) ConCat(Out,&o,">=");
+			else PrintHexCode= 1;
             break;
         case 201:
-            ConCat(Out,&o,"<>");
+            if (!inREM) ConCat(Out,&o,"<>");
+			else PrintHexCode= 1;
             break;
         case 202:
-            ConCat(Out,&o," LINE ");
+            if (!inREM) ConCat(Out,&o," LINE ");
+			else PrintHexCode= 1;
             break;
         case 203:
-            ConCat(Out,&o," THEN ");
+            if (!inREM) ConCat(Out,&o," THEN ");
+			else PrintHexCode= 1;
             break;
         case 204:
-            ConCat(Out,&o," TO ");
+            if (!inREM) ConCat(Out,&o," TO ");
+			else PrintHexCode= 1;
             break;
         case 205:
-            ConCat(Out,&o," STEP ");
+            if (!inREM) ConCat(Out,&o," STEP ");
+			else PrintHexCode= 1;
             break;
         case 206:
-            ConCat(Out,&o," DEF FN ");
+            if (!inREM) ConCat(Out,&o," DEF FN ");
+			else PrintHexCode= 1;
             break;
         case 207:
-            ConCat(Out,&o," CAT ");
+            if (!inREM) ConCat(Out,&o," CAT ");
+			else PrintHexCode= 1;
             break;
         case 208:
-            ConCat(Out,&o," FORMAT ");
+            if (!inREM) ConCat(Out,&o," FORMAT ");
+			else PrintHexCode= 1;
             break;
         case 209:
-            ConCat(Out,&o," MOVE ");
+            if (!inREM) ConCat(Out,&o," MOVE ");
+			else PrintHexCode= 1;
             break;
         case 210:
-            ConCat(Out,&o," ERASE ");
+            if (!inREM) ConCat(Out,&o," ERASE ");
+			else PrintHexCode= 1;
             break;
         case 211:
-            ConCat(Out,&o," OPEN #");
+            if (!inREM) ConCat(Out,&o," OPEN #");
+			else PrintHexCode= 1;
             break;
         case 212:
-            ConCat(Out,&o," CLOSE #");
+            if (!inREM) ConCat(Out,&o," CLOSE #");
+			else PrintHexCode= 1;
             break;
         case 213:
-            ConCat(Out,&o," MERGE ");
+            if (!inREM) ConCat(Out,&o," MERGE ");
+			else PrintHexCode= 1;
             break;
         case 214:
-            ConCat(Out,&o," VERIFY ");
+            if (!inREM) ConCat(Out,&o," VERIFY ");
+			else PrintHexCode= 1;
             break;
         case 215:
-            ConCat(Out,&o," BEEP ");
+            if (!inREM) ConCat(Out,&o," BEEP ");
+			else PrintHexCode= 1;
             break;
         case 216:
-            ConCat(Out,&o," CIRCLE ");
+            if (!inREM) ConCat(Out,&o," CIRCLE ");
+			else PrintHexCode= 1;
             break;
         case 217:
-            ConCat(Out,&o," INK ");
+            if (!inREM) ConCat(Out,&o," INK ");
+			else PrintHexCode= 1;
             break;
         case 218:
-            ConCat(Out,&o," PAPER ");
+            if (!inREM) ConCat(Out,&o," PAPER ");
+			else PrintHexCode= 1;
             break;
         case 219:
-            ConCat(Out,&o," FLASH ");
+            if (!inREM) ConCat(Out,&o," FLASH ");
+			else PrintHexCode= 1;
             break;
         case 220:
-            ConCat(Out,&o," BRIGHT ");
+            if (!inREM) ConCat(Out,&o," BRIGHT ");
+			else PrintHexCode= 1;
             break;
         case 221:
-            ConCat(Out,&o," INVERSE ");
+            if (!inREM) ConCat(Out,&o," INVERSE ");
+			else PrintHexCode= 1;
             break;
         case 222:
-            ConCat(Out,&o," OVER ");
+            if (!inREM) ConCat(Out,&o," OVER ");
+			else PrintHexCode= 1;
             break;
         case 223:
-            ConCat(Out,&o," OUT ");
+            if (!inREM) ConCat(Out,&o," OUT ");
+			else PrintHexCode= 1;
             break;
         case 224:
-            ConCat(Out,&o," LPRINT ");
+            if (!inREM) ConCat(Out,&o," LPRINT ");
+			else PrintHexCode= 1;
             break;
         case 225:
-            ConCat(Out,&o," LLIST ");
+            if (!inREM) ConCat(Out,&o," LLIST ");
+			else PrintHexCode= 1;
             break;
         case 226:
-            ConCat(Out,&o," STOP ");
+            if (!inREM) ConCat(Out,&o," STOP ");
+			else PrintHexCode= 1;
             break;
         case 227:
-            ConCat(Out,&o," READ ");
+            if (!inREM) ConCat(Out,&o," READ ");
+			else PrintHexCode= 1;
             break;
         case 228:
-            ConCat(Out,&o," DATA ");
+            if (!inREM) ConCat(Out,&o," DATA ");
+			else PrintHexCode= 1;
             break;
         case 229:
-            ConCat(Out,&o," RESTORE ");
+            if (!inREM) ConCat(Out,&o," RESTORE ");
+			else PrintHexCode= 1;
             break;
         case 230:
-            ConCat(Out,&o," NEW ");
+            if (!inREM) ConCat(Out,&o," NEW ");
+			else PrintHexCode= 1;
             break;
         case 231:
-            ConCat(Out,&o," BORDER ");
+            if (!inREM) ConCat(Out,&o," BORDER ");
+			else PrintHexCode= 1;
             break;
         case 232:
-            ConCat(Out,&o," CONTINUE ");
+            if (!inREM) ConCat(Out,&o," CONTINUE ");
+			else PrintHexCode= 1;
             break;
         case 233:
-            ConCat(Out,&o," DIM ");
+            if (!inREM) ConCat(Out,&o," DIM ");
+			else PrintHexCode= 1;
             break;
         case 234:
-            ConCat(Out,&o," REM ");
-            inREM= 1;
+            if (!inREM) ConCat(Out,&o," REM ");
+			else PrintHexCode= 1;
+			inREM = 1;
             if (bin1stREM || binallREM) xxREM= 1;
 			if (bin1stREM) bin1stREM= 0;
             break;
         case 235:
-            ConCat(Out,&o," FOR ");
+            if (!inREM) ConCat(Out,&o," FOR ");
+			else PrintHexCode= 1;
             break;
         case 236:
-            ConCat(Out,&o," GO TO ");
+            if (!inREM) ConCat(Out,&o," GO TO ");
+			else PrintHexCode= 1;
             break;
         case 237:
-            ConCat(Out,&o," GO SUB ");
+            if (!inREM) ConCat(Out,&o," GO SUB ");
+			else PrintHexCode= 1;
             break;
         case 238:
-            ConCat(Out,&o," INPUT ");
+            if (!inREM) ConCat(Out,&o," INPUT ");
+			else PrintHexCode= 1;
             break;
         case 239:
-            ConCat(Out,&o," LOAD ");
+            if (!inREM) ConCat(Out,&o," LOAD ");
+			else PrintHexCode= 1;
             break;
         case 240:
-            ConCat(Out,&o," LIST ");
+            if (!inREM) ConCat(Out,&o," LIST ");
+			else PrintHexCode= 1;
             break;
         case 241:
-            ConCat(Out,&o," LET ");
+            if (!inREM) ConCat(Out,&o," LET ");
+			else PrintHexCode= 1;
             break;
         case 242:
-            ConCat(Out,&o," PAUSE ");
+            if (!inREM) ConCat(Out,&o," PAUSE ");
+			else PrintHexCode= 1;
             break;
         case 243:
-            ConCat(Out,&o," NEXT ");
+            if (!inREM) ConCat(Out,&o," NEXT ");
+			else PrintHexCode= 1;
             break;
         case 244:
-            ConCat(Out,&o," POKE ");
+            if (!inREM) ConCat(Out,&o," POKE ");
+			else PrintHexCode= 1;
             break;
         case 245:
-            ConCat(Out,&o," PRINT ");
+            if (!inREM) ConCat(Out,&o," PRINT ");
+			else PrintHexCode= 1;
             break;
         case 246:
-            ConCat(Out,&o," PLOT ");
+            if (!inREM) ConCat(Out,&o," PLOT ");
+			else PrintHexCode= 1;
             break;
         case 247:
-            ConCat(Out,&o," RUN ");
+            if (!inREM) ConCat(Out,&o," RUN ");
+			else PrintHexCode= 1;
             break;
         case 248:
-            ConCat(Out,&o," SAVE ");
+            if (!inREM) ConCat(Out,&o," SAVE ");
+			else PrintHexCode= 1;
             break;
         case 249:
-            ConCat(Out,&o," RANDOMIZE ");
+            if (!inREM) ConCat(Out,&o," RANDOMIZE ");
+			else PrintHexCode= 1;
             break;
         case 250:
-            ConCat(Out,&o," IF ");
+            if (!inREM) ConCat(Out,&o," IF ");
+			else PrintHexCode= 1;
             break;
         case 251:
-            ConCat(Out,&o," CLS ");
+            if (!inREM) ConCat(Out,&o," CLS ");
+			else PrintHexCode= 1;
             break;
         case 252:
-            ConCat(Out,&o," DRAW ");
+            if (!inREM) ConCat(Out,&o," DRAW ");
+			else PrintHexCode= 1;
             break;
         case 253:
-            ConCat(Out,&o," CLEAR ");
+            if (!inREM) ConCat(Out,&o," CLEAR ");
+			else PrintHexCode= 1;
             break;
         case 254:
-            ConCat(Out,&o," RETURN ");
+            if (!inREM) ConCat(Out,&o," RETURN ");
+			else PrintHexCode= 1;
             break;
         case 255:
-            ConCat(Out,&o," COPY ");
+            if (!inREM) ConCat(Out,&o," COPY ");
+			else PrintHexCode= 1;
             break;
         default:
             if (In[i] >= 32) Out[o++] = In[i];
+			else if (inREM) PrintHexCode= 1;
 
         }
+
       }
-	  else {	//xxREM= 1
-		    switch (colorcode) {
-              case 0:  break;
-			  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
-	          case 2:  sprintf(ccf, "\\%02X",In[i]); break;
-	          case 3:  sprintf(ccf, "{%02X}",In[i]); break;
-	          case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
-	          case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
-	          case 6:  sprintf(ccf, "%02X",In[i]); break;
-	        }
-            if (colorcode) ConCat(Out,&o, ccf);
+	  else { //xxREM= 1
+	    switch (colorcode) {
+	      case 0:  break;
+		  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
+	      case 2:  sprintf(ccf, "\\%02X",In[i]); break;
+	      case 3:  sprintf(ccf, "{%02X}",In[i]); break;
+	      case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
+	      case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
+	      case 6:  sprintf(ccf, "%02X",In[i]); break;
+		}
+	    if (colorcode) ConCat(Out,&o, ccf);
 	  }
 
-    if (PrintUDGCode) PrintUDGFormats();
+    if (PrintHexCode) PrintHexFormats();
+    if (PrintUDGCode) PrintUDGFormats();	
     } //end of for
 	xxREM= 0;
 	
