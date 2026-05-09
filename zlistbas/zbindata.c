@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h> //strtol()
 #include <fcntl.h>
+#include <ctype.h> //toupper()
 //#include <unistd.h>
 //#include <sys/stat.h>
 
