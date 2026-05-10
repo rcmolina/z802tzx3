@@ -43,10 +43,10 @@ if (apos){
 	else if (toupper(argv[apos][0])=='X') {hex=1;address= strtol(argv[apos] +1,NULL,0);}
 	else if (toupper(argv[apos][0])=='R') {remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
 	else if (toupper(argv[apos][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
-	else {printf("usraddr type is wrong\n");return -1;}
+	else {printf("usraddr type is wrong!\n");return -1;}
 }
+if (line ==0) line= -1;
 if (line <0) {line= -line; inc= 1;}
-if (line ==0) {line= 1; inc= 1;}
 
 /*
 if (stat(argv[1],&file_info)<0) {
