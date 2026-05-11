@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#undef __STRICT_ANSI__	//strcasecmp()
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -1718,7 +1719,7 @@ int TZXPROC()
 			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 			
 			        LineLen = mem[5 +0x13 +5 +3 +j] + 256*mem[5 +0x13 +5 +4 +j];
-                    if (LineLen > ProgLen -5) LineLen= ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
+                    if (LineLen > ProgLen -4) LineLen= ProgLen -4;	  // LineNum(2) +LineLen(2)
 			
 					memcpy(LineData,mem+5 +0x13 +5 +5 +j, LineLen);
 			        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
@@ -1740,7 +1741,7 @@ int TZXPROC()
 				        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 				
 				        LineLen = mem[19 +0x13 +19 +3 +j] + 256*mem[19 +0x13 +19 +4 +j];
-						if (LineLen > ProgLen -5) LineLen =ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
+						if (LineLen > ProgLen -4) LineLen =ProgLen -4;	  // LineNum(2) +LineLen(2)
 						memcpy(LineData,mem+19 +0x13 +19 +5 +j, LineLen);
 				        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
 						
@@ -1774,7 +1775,7 @@ int TZXPROC()
 					LineNum = 256*mem[1 +4 + delta +0x74 +j] + mem[1 +4 + delta +0x74 +1 +j];
 			        if (LineNum > 16384) break; //se salta la zona de vars tras programa
 			        LineLen = mem[1 +4 + delta +0x74 +2 +j] + 256*mem[1 +4 + delta +0x74 +3 +j];
-					//if (LineLen > ProgLen -5) LineLen =ProgLen -5;	// flag(1) +LineNum(2) +LineLen(2)
+					//if (LineLen > ProgLen -4) LineLen =ProgLen -4;	// LineNum(2) +LineLen(2)
 
 					memcpy(LineData,mem +1 +4 + delta +0x74 +4 +j , LineLen);
 			        LineData[LineLen]= 0; // Terminate the line data
@@ -1892,7 +1893,7 @@ void TAPPROC()
 				if (LineNum > 16384) break;
 
 				LineLen = mem[0x1A +j] +256*mem[0x1B +j];
-                if (LineLen > ProgLen -5) LineLen= ProgLen -5;	  // flag(1) +LineNum(2) +LineLen(2)
+                if (LineLen > ProgLen -4) LineLen= ProgLen -4;	  // LineNum(2) +LineLen(2)
 				
 				memcpy(LineData,mem +0x1C +j ,LineLen);
 		        LineData[LineLen -1]= 0; // Terminate the line data, remove End Of Line Mark
@@ -2364,7 +2365,7 @@ int T81PROC()
 			if (LineNum > 16384) break;
 			
 			LineLen = mem[ProgAddrFpos +2] +256*mem[ProgAddrFpos +3];
-            //if (LineLen > ProgLen -5) LineLen= ProgLen -5;	// flag(1) +LineNum(2) +LineLen(2)
+            //if (LineLen > ProgLen -4) LineLen= ProgLen -4;	// LineNum(2) +LineLen(2)
 	   
 			memcpy(LineData, mem + ProgAddrFpos +4 ,LineLen);
 	        LineData[LineLen]= 0; // Terminate the line data
