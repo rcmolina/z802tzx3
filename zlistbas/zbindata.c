@@ -163,11 +163,8 @@ else if (remspec) {
 		}
 	}	 
 	printf("\n");
-
-    if (address >= 16384) {	   
-	  printf("2 RANDOMIZE USR VAL \"23760\"\n");
-	  printf("3 RANDOMIZE USR VAL \"%d\"\n", address);
-	}	  
+	printf("2 RANDOMIZE USR VAL \"23760\"\n");
+    if (address >= 16384) printf("3 RANDOMIZE USR VAL \"%d\"\n", address);	   
 }
 else if (remzx81) {
     printf("1 REM ");
@@ -194,11 +191,8 @@ else if (remzx81) {
 		}
 	}	
 	printf("\n");
-
-    if (address >= 16384) {	   
-	  printf("2 RAND USR VAL \"16514\"\n");
-	  printf("3 RAND USR VAL \"%d\"\n", address);
-	}	  
+	printf("2 RAND USR VAL \"16514\"\n");
+    if (address >= 16384) printf("3 RAND USR VAL \"%d\"\n", address);	  
 }
 
 close(fd);
