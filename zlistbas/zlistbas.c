@@ -115,7 +115,7 @@ char **charset = charset_zx81zmb;
 
 FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
-unsigned char LineData[65535],LineText[65535];
+unsigned char LineData[65535],LineText[196608];
 
 int k, unprot0e;
 int xxREM = 0;
@@ -697,7 +697,6 @@ int32_t inflate_zlib(const unsigned char *input_buf, uint32_t input_len, unsigne
 
 int main (int argc, char *argv[])
 {
-
   if (argc < 2 || argc > 3)
     {
     printf("zlistbas <v%s> by Rafa Molina \n", PROG_VER);
@@ -1662,11 +1661,11 @@ void PrintUDGFormats() {
 	  else { //xxREM= 1
 	    switch (colorcode) {
 	      case 0:  break;
-		  default: sprintf(ccf, "\\{0x%02X}",In[i]); break;
+		  default: sprintf(ccf, "\\{%d}",In[i]); break;
 	      case 2:  sprintf(ccf, "\\%02X",In[i]); break;
 	      case 3:  sprintf(ccf, "{%02X}",In[i]); break;
 	      case 4:  sprintf(ccf, "\\#%03d",In[i]); break;
-	      case 5:  sprintf(ccf, "\\#%03d",In[i]); break;
+	      case 5:  sprintf(ccf, "\\{0x%02X}",In[i]); break;
 	      case 6:  sprintf(ccf, "%02X",In[i]); break;
 		}
 	    if (colorcode) ConCat(Out,&o, ccf);
