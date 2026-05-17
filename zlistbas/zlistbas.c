@@ -115,7 +115,7 @@ char **charset = charset_zx81zmb;
 
 FILE *fIn;
 unsigned short ProgAddr, VarsAddr, LineNum, LineLen;
-unsigned char LineData[65535],LineText[196608];
+unsigned char LineData[65535],LineText[212992];
 
 int k, unprot0e;
 int xxREM = 0;
@@ -1168,7 +1168,8 @@ void PrintUDGFormats() {
 			else PrintHexCode= 1;
             break;
         case 92:
-            ConCat(Out,&o,"\\\\");
+            if (!inREM) ConCat(Out,&o,"\\\\");
+			else PrintHexCode= 1;
             break;
         case 127:
             ConCat(Out,&o,"\\*"); /* Copyright symbol - compatible with zmakebas */
