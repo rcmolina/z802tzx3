@@ -171,7 +171,7 @@ else if (remspec && ldrbottom) {
 	}	 
 	printf("\n");
 	if (address >= 16384) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", 23760+17);
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", 23760+bytes);
     	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
 	}
 	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);	
@@ -203,7 +203,7 @@ else if (remzx81 && ldrbottom) {
 	}	
 	printf("\n");
 	if (address >= 16384) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", 23760+17);
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", 16514+bytes);
     	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
 	}
 	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);		   
@@ -268,7 +268,7 @@ else if (remzx81 && !ldrbottom) {
 	}	
 	printf("\n");
 	if (address >= 16384) {
-		printf("2 RANDOMIZE USR VAL \"23760\"\n");
+		printf("2 RANDOMIZE USR VAL \"16514\"\n");
     	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
 	}
 	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);	  
