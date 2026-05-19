@@ -203,6 +203,11 @@ else if (remzx81) {
 	       read(fd,&c,1);
 	       printf("\\{%d}",c);
 		}
+	    if (address >= 16384 && address < 16514) {
+		  printf("\\{243}\\{33}\\{130}\\{64}"); //DI, HL 16514
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{237}\\{176}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDIR, EI, JP numline, RET
+		}
 	}
 	else { // default inc=10, so use hex
 	    if (address >= 16514) {
@@ -214,10 +219,19 @@ else if (remzx81) {
 	       read(fd,&c,1);
 	       printf("\\{0x%02X}",c);
 		}
+	    if (address >= 16384 && address < 16514) {
+		  printf("\\{F3}\\{0x21}\\{0x82}\\{0x40}"); //DI, HL $4082
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0xED}\\{0xB0}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDIR, EI, JP numline, RET
+		}
 	}	
 	printf("\n");
 	if (address >= 16514) {
 		printf("2 RANDOMIZE USR VAL \"16514\"\n");
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (address >= 16384 && address < 16514) {
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", 16514+bytes);
     	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
 	}
 	else if (numline >= 16514) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);		   
