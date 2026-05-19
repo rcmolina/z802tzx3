@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
 int address= 60000;
 int hex= 1;
-int lddr= 0;
+int ldrbottom= 0;
 int remspec= 0;
 int remzx81= 0;
 int numline= 10;
@@ -46,8 +46,8 @@ if (apos){
 	else if (toupper(argv[apos][0])=='X') {hex=1;address= strtol(argv[apos] +1,NULL,0);}
 	else if (toupper(argv[apos][0])=='R') {remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
 	else if (toupper(argv[apos][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
-	else if (toupper(argv[apos][0])=='Q') {lddr=1;remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
-	else if (toupper(argv[apos][0])=='Y') {lddr=1;remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}	  
+	else if (toupper(argv[apos][0])=='Q') {ldrbottom=1;remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='Y') {ldrbottom=1;remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}	   
 	else {printf("usraddr type is wrong!\n");return -1;}
 }
 if (numline ==0) numline= -1;
@@ -143,70 +143,79 @@ else if ( !remspec && !remzx81 && !hex ) {
        else printf("\n");
     }
 }
-else if (remspec && !lddr) {
+else if (remspec && ldrbottom) {
+    if (numline <16384) numline= address;
     printf("1 REM ");
 	if (inc==1) { //dec
-	    if (address >= 16384) {
-		  printf("\\{33}\\{220}\\{92}"); //HL 23772
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{176}\\{201}"); // LDIR, RET
-		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{%d}",c);
 		}
+	    if (address >= 16384) {
+		  printf("\\{243}\\{33}\\{208}\\{92}"); //DI, HL 23760
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{237}\\{176}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256);  // LDIR, EI, JP numline, RET
+		}
 	}
 	else { // default inc=10, so use hex
-	    if (address >= 16384) {
-		  printf("\\{0x21}\\{0xDC}\\{0x5C}"); //HL $5CDC
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB0}\\{0xC9}"); // LDIR, RET
-		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{0x%02X}",c);
+		}
+
+	    if (address >= 16384) {
+		  printf("\\{0xF3}\\{0x21}\\{0xD0}\\{0x5C}"); //DI, HL $5CDC
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0xED}\\{0xB0}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDIR, EI, JP numline, RET
 		}
 	}	 
 	printf("\n");
-	printf("2 RANDOMIZE USR VAL \"23760\"\n");
-    if (address >= 16384) printf("3 RANDOMIZE USR VAL \"%d\"\n", address);	   
+	if (address >= 16384) {
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", 23760+17);
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);	
 }
-else if (remzx81 && !lddr) {
+else if (remzx81 && ldrbottom) {
+    if (numline <16384) numline= address;
     printf("1 REM ");
 	if (inc==1) { //dec
-	    if (address >= 16384) {
-		  printf("\\{33}\\{142}\\{64}"); //HL 16526
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{176}\\{201}"); // LDIR, RET
-		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{%d}",c);
 		}
+	    if (address >= 16384) {
+		  printf("\\{243}\\{33}\\{130}\\{64}"); //DI, HL 16514
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{237}\\{176}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDIR, EI, JP numline, RET
+		}
 	}
 	else { // default inc=10, so use hex
-	    if (address >= 16384) {
-		  printf("\\{0x21}\\{0x8E}\\{0x40}"); //HL $408E
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB0}\\{0xC9}"); // LDIR, RET
-		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{0x%02X}",c);
 		}
+	    if (address >= 16384) {
+		  printf("\\{F3}\\{0x21}\\{0x82}\\{0x40}"); //DI, HL $4082
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0xED}\\{0xB0}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDIR, EI, JP numline, RET
+		}
 	}	
 	printf("\n");
-	printf("2 RAND USR VAL \"16514\"\n");
-    if (address >= 16384) printf("3 RAND USR VAL \"%d\"\n", address);	  
+	if (address >= 16384) {
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", 23760+17);
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);		   
 }
-else if (remspec && lddr) {
+else if (remspec && !ldrbottom) {
     if (numline <16384) numline= address;
     printf("1 REM ");
 	if (inc==1) { //dec
 	    if (address >= 16384) {
-		  printf("\\{33}\\{%d}\\{%d}", (23775+bytes-1)%256, (23775+bytes-1)/256); //HL
+		  printf("\\{243}\\{33}\\{%d}\\{%d}", (23760+17+bytes-1)%256, (23760+17+bytes-1)/256); //DI, HL
 		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (address+bytes-1)%256, (address+bytes-1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{184}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, JP numline, RET
+		  printf("\\{237}\\{184}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, EI, JP numline, RET
 		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
@@ -215,9 +224,9 @@ else if (remspec && lddr) {
 	}
 	else { // default inc=10, so use hex
 	    if (address >= 16384) {
-		  printf("\\{0x21}\\{0x%02X}\\{0x%02X}", (23775+bytes-1)%256, (23775+bytes-1)/256); //HL
+		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (23760+17+bytes-1)%256, (23760+17+bytes-1)/256); //HL
 		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (address+bytes-1)%256, (address+bytes-1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB8}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, JP numline, RET
+		  printf("\\{0xED}\\{0xB8}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, EI, JP numline, RET
 
 		}
 	    for(i=0;i<bytes;i++) {
@@ -226,17 +235,20 @@ else if (remspec && lddr) {
 		}
 	}	 
 	printf("\n");
-	printf("2 RANDOMIZE USR VAL \"23760\"\n");
-    if (address >= 16384) printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);	   
+	if (address >= 16384) {
+		printf("2 RANDOMIZE USR VAL \"23760\"\n");
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline); 
 }
-else if (remzx81 && lddr) {
+else if (remzx81 && !ldrbottom) {
     if (numline <16384) numline= address;
     printf("1 REM ");
-	if (inc==1) { //dec
+	if (inc==1) { //de
 	    if (address >= 16384) {
-		  printf("\\{33}\\{%d}\\{%d}", (16529+bytes-1)%256, (16529+bytes-1)/256); //HL
+		  printf("\\{243}\\{33}\\{%d}\\{%d}", (16514+17+bytes-1)%256, (16514+17+bytes-1)/256); //HL
 		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (address+bytes-1)%256, (address+bytes-1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{184}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, JP numline, RET
+		  printf("\\{237}\\{184}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, EI, JP numline, RET
 		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
@@ -245,9 +257,9 @@ else if (remzx81 && lddr) {
 	}
 	else { // default inc=10, so use hex
 	    if (address >= 16384) {
-		  printf("\\{0x21}\\{0x%02X}\\{0x%02X}", (16529+bytes-1)%256, (16529+bytes-1)/256); //HL
+		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (16514+17+bytes-1)%256, (16514+17+bytes-1)/256); //HL
 		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}",(address+bytes-1)%256, (address+bytes-1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB8}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, JP numline, RET
+		  printf("\\{0xED}\\{0xB8}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, EI, JP numline, RET
 		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
@@ -255,8 +267,11 @@ else if (remzx81 && lddr) {
 		}
 	}	
 	printf("\n");
-	printf("2 RAND USR VAL \"16514\"\n");
-    if (address >= 16384) printf("3 RAND USR VAL \"%d\"\n", numline);	  
+	if (address >= 16384) {
+		printf("2 RANDOMIZE USR VAL \"23760\"\n");
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);	  
 }
 
 close(fd);
