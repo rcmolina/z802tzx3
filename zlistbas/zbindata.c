@@ -25,61 +25,6 @@ int rembase= 0;
 int fd;
 unsigned char c;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
-int RemLineCode(){
-
-	int loadrsize= 17;
-    if (numline <16384) numline= address;
-    printf("1 REM ");
-	if (inc==1) { //dec
-	    if (address >= rembase) {
-		  printf("\\{243}\\{33}\\{%d}\\{%d}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //DI, HL
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{184}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, EI, JP numline, RET
-		}
-	    for(i=0;i<bytes;i++) {
-	       read(fd,&c,1);
-	       printf("\\{%d}",c);
-		}
-	    if (address >= 16384 && address < rembase) {
-		  printf("\\{243}\\{33}\\{%d}\\{%d}", rembase%256, rembase/256); //DI, HL rembase
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{237}\\{176}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256);  // LDIR, EI, JP numline, RET
-		}
-	}
-	else { // default inc=10, so use hex
-	    if (address >= rembase) {
-		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //HL
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB8}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, EI, JP numline, RET
-		}
-	    for(i=0;i<bytes;i++) {
-	       read(fd,&c,1);
-	       printf("\\{0x%02X}",c);
-		}
-
-	    if (address >= 16384 && address < rembase) {
-		  printf("\\{0xF3}\\{0x21}\\{0x%02X}\\{0x%02X}", rembase%256, rembase/256); //DI, HL rembase
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
-		  printf("\\{0xED}\\{0xB0}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDIR, EI, JP numline, RET
-		}
-	}	 
-	printf("\n");
-	if (address >= rembase) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase);
-    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
-	}
-	else if (address >= 16384 && address < rembase) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase +bytes);
-    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
-	}
-	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);
-
-	return(0);
-}
-///////////////////////////////////////////////////////////////////////////////////
-
-
 if ( argc<2 || argc>4 ) {
 	printf("v.%s\n", PROG_VER); 
 	printf("Usage: %s binfile [[-]numline] Dusraddr    |Xusraddr    |\n",argv[0]);
@@ -200,14 +145,59 @@ else if ( !remspec && !remzx81 && !hex ) {
     }
 }
 
-else if (remspec) {
-	rembase= 23760;
-	RemLineCode();
+else if (remspec || remzx81) {
+	if (remspec) rembase= 23760;
+	if (remzx81) rembase= 16514;
+
+	int loadrsize= 17;
+    if (numline <16384) numline= address;
+    printf("1 REM ");
+	if (inc==1) { //dec
+	    if (address >= rembase) {
+		  printf("\\{243}\\{33}\\{%d}\\{%d}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //DI, HL
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{237}\\{184}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256); // LDDR, EI, JP numline, RET
+		}
+	    for(i=0;i<bytes;i++) {
+	       read(fd,&c,1);
+	       printf("\\{%d}",c);
+		}
+	    if (address >= 16384 && address < rembase) {
+		  printf("\\{243}\\{33}\\{%d}\\{%d}", rembase%256, rembase/256); //DI, HL rembase
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{237}\\{176}\\{251}\\{195}\\{%d}\\{%d}\\{201}", numline%256, numline/256);  // LDIR, EI, JP numline, RET
+		}
+	}
+	else { // default inc=10, so use hex
+	    if (address >= rembase) {
+		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //HL
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0xED}\\{0xB8}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDDR, EI, JP numline, RET
+		}
+	    for(i=0;i<bytes;i++) {
+	       read(fd,&c,1);
+	       printf("\\{0x%02X}",c);
+		}
+
+	    if (address >= 16384 && address < rembase) {
+		  printf("\\{0xF3}\\{0x21}\\{0x%02X}\\{0x%02X}", rembase%256, rembase/256); //DI, HL rembase
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0xED}\\{0xB0}\\{0xFB}\\{0xC3}\\{0x%02X}\\{0x%02X}\\{0xC9}", numline%256, numline/256); // LDIR, EI, JP numline, RET
+		}
+	}	 
+	printf("\n");
+	if (address >= rembase) {
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase);
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (address >= 16384 && address < rembase) {
+		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase +bytes);
+    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+	}
+	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);
+
 }
-else if (remzx81) {
-	rembase= 16514;
-	RemLineCode();	     
-}
+
 
 close(fd);
 return 0;
