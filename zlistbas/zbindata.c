@@ -150,6 +150,7 @@ else if (remspec || remzx81) {
 	if (remzx81) rembase= 16514;
 
 	int loadrsize= 17;
+	char randcmd[]= "RANDOMIZE";
     if (numline <16384) numline= address;
     printf("1 REM ");
 	if (inc==1) { //dec
@@ -186,15 +187,17 @@ else if (remspec || remzx81) {
 		}
 	}	 
 	printf("\n");
+	if (remzx81) randcmd[4]=0; //RAND instead of RANDOMIZE
+	
 	if (address >= rembase) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase);
-    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase); 
+		printf("3 %s USR VAL \"%d\"\n", randcmd, numline);
 	}
 	else if (address >= 16384 && address < rembase) {
-		printf("2 RANDOMIZE USR VAL \"%d\"\n", rembase +bytes);
-    	printf("3 RANDOMIZE USR VAL \"%d\"\n", numline);
+		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase +bytes); 
+		printf("3 %s USR VAL \"%d\"\n", randcmd, numline);
 	}
-	else if (numline >= 16384) printf("2 RANDOMIZE USR VAL \"%d\"\n", numline);
+	else if (numline >= 16384) printf("2 %s USR VAL \"%d\"\n", randcmd, numline);
 
 }
 
