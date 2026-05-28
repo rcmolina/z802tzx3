@@ -198,7 +198,7 @@ else if (remspec || remzx81) {
 		printf("3 %s USR VAL \"%d\"\n", randcmd, numline);
 	}
 	else if (numline >= 16384) printf("2 %s USR VAL \"%d\"\n", randcmd, numline);
-
+	else printf("2 %s USR VAL \"%d\"\n", randcmd, rembase);
 }
 
 
