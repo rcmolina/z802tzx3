@@ -9,12 +9,12 @@
 
 int main(int argc, char **argv) {
 
-int address= 60000;
+int destaddr= 60000;
 int hex= 1;
 int loadrfirst= 0;
 int remspec= 0;
 int remzx81= 0;
-int numline= 10;
+int execline= 10;
 int inc= 10;
 int bytes= 0;
 int apos= 0;
@@ -28,33 +28,33 @@ unsigned char c;
 
 if ( argc<2 || argc>4 ) {
 	printf("v.%s\n", PROG_VER); 
-	printf("Usage: %s binfile [[-]numline] Dusraddr        |Xusraddr        |\n",argv[0]);
-	printf("                                     R[-]destaddrspec|Z[-]destaddrzx81|\n");
+	printf("Usage: %s binfile [[-]execline] Ddestaddr       |Xdestaddr        \n",argv[0]);
+	printf("                                     |R[-]destaddrspec|Z[-]destaddrzx81\n");
 	return -1;
 }
 else if (argc==3) {
-	if ( argv[2][0] >= 48 && argv[2][0] <= 57) numline=strtol(argv[2],NULL,0);
-	else if ( argv[2][0] =='-'  && (argv[2][1] >= 48 && argv[2][1] <= 57) ) numline=strtol(argv[2],NULL,0);
+	if ( argv[2][0] >= 48 && argv[2][0] <= 57) execline=strtol(argv[2],NULL,0);
+	else if ( argv[2][0] =='-'  && (argv[2][1] >= 48 && argv[2][1] <= 57) ) execline=strtol(argv[2],NULL,0);
 	else apos= 2;
 }
 else if (argc==4) {
-	if ( argv[2][0] >= 48 && argv[2][0] <= 57) numline=strtol(argv[2],NULL,0);
-	else if ( argv[2][0] =='-'  && (argv[2][1] >= 48 && argv[2][1] <= 57) ) numline=strtol(argv[2],NULL,0);
+	if ( argv[2][0] >= 48 && argv[2][0] <= 57) execline=strtol(argv[2],NULL,0);
+	else if ( argv[2][0] =='-'  && (argv[2][1] >= 48 && argv[2][1] <= 57) ) execline=strtol(argv[2],NULL,0);
 	else apos= 2;
-	if ( argv[3][0] >= 48 && argv[3][0] <= 57) numline=strtol(argv[3],NULL,0);
-	else if ( argv[3][0] =='-'  && (argv[3][1] >= 48 && argv[3][1] <= 57) ) numline=strtol(argv[2],NULL,0);
+	if ( argv[3][0] >= 48 && argv[3][0] <= 57) execline=strtol(argv[3],NULL,0);
+	else if ( argv[3][0] =='-'  && (argv[3][1] >= 48 && argv[3][1] <= 57) ) execline=strtol(argv[2],NULL,0);
 	else apos= 3;	   
 }
 if (apos){
-	if (toupper(argv[apos][0])=='D') {hex=0;address= strtol(argv[apos] +1,NULL,0);}
-	else if (toupper(argv[apos][0])=='X') {hex=1;address= strtol(argv[apos] +1,NULL,0);}
-	else if (toupper(argv[apos][0])=='R') {remspec=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}
-	else if (toupper(argv[apos][0])=='Z') {remzx81=1;hex=1;address= strtol(argv[apos] +1,NULL,0);}  
+	if (toupper(argv[apos][0])=='D') {hex=0;destaddr= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='X') {hex=1;destaddr= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='R') {remspec=1;hex=1;destaddr= strtol(argv[apos] +1,NULL,0);}
+	else if (toupper(argv[apos][0])=='Z') {remzx81=1;hex=1;destaddr= strtol(argv[apos] +1,NULL,0);}  
 	else {printf("usraddr type is wrong!\n");return -1;}
 }
-if (numline ==0) numline= -1;
-if (numline <0) {numline= -numline; inc= 1;}
-if (address <0) {address= -address; dojump=0;}
+if (execline ==0) execline= -1;
+if (execline <0) {execline= -execline; inc= 1;}
+if (destaddr <0) {destaddr= -destaddr; dojump=0;}
 
 /*
 if (stat(argv[1],&file_info)<0) {
@@ -74,47 +74,47 @@ bytes=(int)tell(fd);
 lseek (fd, 0, SEEK_SET);
 
 if ( !remspec && !remzx81 && hex ) {
-    printf("%d GO TO %d\n", numline, numline+6*inc);
-    numline+=inc;
-    procline=numline;
-    printf("%d FOR i=1 TO LEN t$ STEP 2\n", numline);
-    numline+=inc;
-    printf("%d LET m=CODE t$(i): LET m=m-48: IF m>9 THEN LET m=m-7\n", numline);
-    numline+=inc;
-    printf("%d LET n=CODE t$(i+1): LET n=n-48: IF n>9 THEN LET n=n-7\n", numline);
-    numline+=inc;	   	     	  
-    printf("%d POKE %d+j,16*m+n: LET j=j+1: NEXT i\n", numline, address-1);
-    numline+=inc;
-    printf("%d RETURN\n", numline);
-    numline+=inc;
+    printf("%d GO TO %d\n", execline, execline+6*inc);
+    execline+=inc;
+    procline=execline;
+    printf("%d FOR i=1 TO LEN t$ STEP 2\n", execline);
+    execline+=inc;
+    printf("%d LET m=CODE t$(i): LET m=m-48: IF m>9 THEN LET m=m-7\n", execline);
+    execline+=inc;
+    printf("%d LET n=CODE t$(i+1): LET n=n-48: IF n>9 THEN LET n=n-7\n", execline);
+    execline+=inc;	    	  	   
+    printf("%d POKE %d+j,16*m+n: LET j=j+1: NEXT i\n", execline, destaddr-1);
+    execline+=inc;
+    printf("%d RETURN\n", execline);
+    execline+=inc;
 
     #define MAXBLOCK 80
     unsigned char buffer[MAXBLOCK];
     int j;
 
-    printf("%d LET j=1\n", numline);
-    numline+=inc;	   
+    printf("%d LET j=1\n", execline);
+    execline+=inc;	    
 
 /*
     i=0; 
     while (i+MAXBLOCK < bytes) {
        read(fd,&buffer,MAXBLOCK);
-       printf("%d LET t$= \"", numline);
+       printf("%d LET t$= \"", execline);
        for (j=0;j<MAXBLOCK;j++) printf("%02X",buffer[j]);
        printf("\"\n");
-       numline+=10;	   	      
-       printf("%d GO SUB %d\n", numline, procline);
-       numline+=10;
+       execline+=10;		   
+       printf("%d GO SUB %d\n", execline, procline);
+       execline+=10;
        i=i+MAXBLOCK;	  	  
     }
     if (i < bytes) {    	
        read(fd,&buffer,bytes-i);
-       printf("%d LET t$= \"", numline);
+       printf("%d LET t$= \"", execline);
        for (j=0;j<bytes-i;j++) printf("%02X",buffer[j]);
        printf("\"\n");
-       numline+=10;	   	      
-       printf("%d GO SUB %d\n", numline, procline);
-       numline+=10;
+       execline+=10;		   
+       printf("%d GO SUB %d\n", execline, procline);
+       execline+=10;
        i=bytes;
     }		   	     
 */
@@ -122,24 +122,24 @@ if ( !remspec && !remzx81 && hex ) {
     i=0; 
     while (i< bytes) {
        numbytes=read(fd,&buffer,MAXBLOCK);
-       printf("%d LET t$= \"", numline);
+       printf("%d LET t$= \"", execline);
        for (j=0;j<numbytes;j++) printf("%02X",buffer[j]);
        printf("\"\n");
-       numline+=inc;		   
-       printf("%d GO SUB %d\n", numline, procline);
-       numline+=inc;
+       execline+=inc;	 	    
+       printf("%d GO SUB %d\n", execline, procline);
+       execline+=inc;
        i=i+numbytes;	  	  
     }		 
 
 }
 else if ( !remspec && !remzx81 && !hex ) {
-    printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", numline, numline+inc, bytes-1, address);
-    numline+=inc;
+    printf("%d RESTORE %d: FOR I=0 TO %d: READ X: POKE %d+I,X:NEXT I\n", execline, execline+inc, bytes-1, destaddr);
+    execline+=inc;
     for(i=0;i<bytes;i++) {
        read(fd,&c,1);
        if (i%16==0) {
-          printf("%d DATA ",numline);
-          numline+=inc;
+          printf("%d DATA ",execline);
+          execline+=inc;
        }
        printf("%d",c);
        if ((i%16!=15) && (i!=(bytes-1))) printf(",");
@@ -154,34 +154,34 @@ else if (remspec || remzx81) {
 	int loadrsize;
 	if (dojump) loadrsize= 17; else loadrsize= 14;
 	char randcmd[]= "RANDOMIZE";
-    if (numline <16384) numline= address;
+    if (execline <16384) execline= destaddr;
     printf("1 REM ");
 	if (inc==1) { //dec
-	    if (address >= rembase) {
+	    if (destaddr >= rembase) {
 		  printf("\\{243}\\{33}\\{%d}\\{%d}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //DI, HL
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (destaddr +bytes -1)%256, (destaddr +bytes -1)/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{237}\\{184}\\{251}");  // LDDR, EI
-		  if (dojump) printf("\\{195}\\{%d}\\{%d}", numline%256, numline/256); // JP numline
+		  if (dojump) printf("\\{195}\\{%d}\\{%d}", execline%256, execline/256); // JP execline
 		  printf("\\{201}"); // RET
 		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{%d}",c);
 		}
-	    if (address >= 16384 && address < rembase) {
+	    if (destaddr >= 16384 && destaddr < rembase) {
 		  printf("\\{243}\\{33}\\{%d}\\{%d}", rembase%256, rembase/256); //DI, HL rembase
-		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", destaddr%256, destaddr/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{237}\\{176}\\{251}"); // LDIR, EI
-		  if (dojump) printf("\\{195}\\{%d}\\{%d}", numline%256, numline/256);  // JP numline
+		  if (dojump) printf("\\{195}\\{%d}\\{%d}", execline%256, execline/256);  // JP execline
 		  printf("\\{201}"); // RET
 		}
 	}
 	else { // default inc=10, so use hex
-	    if (address >= rembase) {
+	    if (destaddr >= rembase) {
 		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //HL
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (address +bytes -1)%256, (address +bytes -1)/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (destaddr +bytes -1)%256, (destaddr +bytes -1)/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{0xED}\\{0xB8}\\{0xFB}"); // LDDR, EI
-		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", numline%256, numline/256); // JP numline
+		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", execline%256, execline/256); // JP execline
 		  printf("\\{0xC9}"); // RET
 
 		}
@@ -190,26 +190,26 @@ else if (remspec || remzx81) {
 	       printf("\\{0x%02X}",c);
 		}
 
-	    if (address >= 16384 && address < rembase) {
+	    if (destaddr >= 16384 && destaddr < rembase) {
 		  printf("\\{0xF3}\\{0x21}\\{0x%02X}\\{0x%02X}", rembase%256, rembase/256); //DI, HL rembase
-		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", address%256, address/256, bytes%256, bytes/256); //DE, BC
+		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", destaddr%256, destaddr/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{0xED}\\{0xB0}\\{0xFB}");  // LDIR, EI
-		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", numline%256, numline/256); // JP numline
+		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", execline%256, execline/256); // JP execline
 		  printf("\\{0xC9}"); // RET
 		}
 	}	 
 	printf("\n");
 	if (remzx81) randcmd[4]=0; //RAND instead of RANDOMIZE
 	
-	if (address >= rembase) {
+	if (destaddr >= rembase) {
 		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase); 
-		printf("3 %s USR VAL \"%d\"\n", randcmd, numline);
+		printf("3 %s USR VAL \"%d\"\n", randcmd, execline);
 	}
-	else if (address >= 16384 && address < rembase) {
+	else if (destaddr >= 16384 && destaddr < rembase) {
 		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase +bytes); 
-		printf("3 %s USR VAL \"%d\"\n", randcmd, numline);
+		printf("3 %s USR VAL \"%d\"\n", randcmd, execline);
 	}
-	else if (numline >= 16384) printf("2 %s USR VAL \"%d\"\n", randcmd, numline);
+	else if (execline >= 16384) printf("2 %s USR VAL \"%d\"\n", randcmd, execline);
 	else printf("2 %s USR VAL \"%d\"\n", randcmd, rembase);
 }
 
