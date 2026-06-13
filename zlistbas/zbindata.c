@@ -5,7 +5,7 @@
 //#include <unistd.h>
 //#include <sys/stat.h>
 
-#define PROG_VER "1.4"
+#define PROG_VER "1.5"
 
 int main(int argc, char **argv) {
 
@@ -27,7 +27,7 @@ int fd;
 unsigned char c;
 
 if ( argc<2 || argc>4 ) {
-	printf("v.%s\n", PROG_VER); 
+	printf("<v.%s> zxspec_rembase= 23760 , zx81_rembase= 16514 \n", PROG_VER); 
 	printf("Usage: %s binfile [[-]execline] Ddestaddr       |Xdestaddr        \n",argv[0]);
 	printf("                                     |R[-]destaddrspec|Z[-]destaddrzx81\n");
 	return -1;
@@ -157,7 +157,7 @@ else if (remspec || remzx81) {
     if (execline <16384) execline= destaddr;
     printf("1 REM ");
 	if (inc==1) { //dec
-	    if (destaddr >= rembase) {
+	    if (destaddr > rembase) {
 		  printf("\\{243}\\{33}\\{%d}\\{%d}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //DI, HL
 		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", (destaddr +bytes -1)%256, (destaddr +bytes -1)/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{237}\\{184}\\{251}");  // LDDR, EI
@@ -168,6 +168,10 @@ else if (remspec || remzx81) {
 	       read(fd,&c,1);
 	       printf("\\{%d}",c);
 		}
+	    if (destaddr == rembase) {
+		  if (dojump) printf("\\{195}\\{%d}\\{%d}", execline%256, execline/256); // JP execline
+		  printf("\\{201}"); // RET
+		}
 	    if (destaddr >= 16384 && destaddr < rembase) {
 		  printf("\\{243}\\{33}\\{%d}\\{%d}", rembase%256, rembase/256); //DI, HL rembase
 		  printf("\\{17}\\{%d}\\{%d}\\{1}\\{%d}\\{%d}", destaddr%256, destaddr/256, bytes%256, bytes/256); //DE, BC
@@ -177,19 +181,21 @@ else if (remspec || remzx81) {
 		}
 	}
 	else { // default inc=10, so use hex
-	    if (destaddr >= rembase) {
+	    if (destaddr > rembase) {
 		  printf("\\{F3}\\{0x21}\\{0x%02X}\\{0x%02X}", (rembase +loadrsize +bytes -1)%256, (rembase +loadrsize +bytes -1)/256); //HL
 		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", (destaddr +bytes -1)%256, (destaddr +bytes -1)/256, bytes%256, bytes/256); //DE, BC
 		  printf("\\{0xED}\\{0xB8}\\{0xFB}"); // LDDR, EI
 		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", execline%256, execline/256); // JP execline
 		  printf("\\{0xC9}"); // RET
-
 		}
 	    for(i=0;i<bytes;i++) {
 	       read(fd,&c,1);
 	       printf("\\{0x%02X}",c);
 		}
-
+	    if (destaddr == rembase) {
+		  if (dojump) printf("\\{0xC3}\\{0x%02X}\\{0x%02X}", execline%256, execline/256); // JP execline
+		  printf("\\{0xC9}"); // RET
+		}
 	    if (destaddr >= 16384 && destaddr < rembase) {
 		  printf("\\{0xF3}\\{0x21}\\{0x%02X}\\{0x%02X}", rembase%256, rembase/256); //DI, HL rembase
 		  printf("\\{0x11}\\{0x%02X}\\{0x%02X}\\{0x01}\\{0x%02X}\\{0x%02X}", destaddr%256, destaddr/256, bytes%256, bytes/256); //DE, BC
@@ -201,9 +207,12 @@ else if (remspec || remzx81) {
 	printf("\n");
 	if (remzx81) randcmd[4]=0; //RAND instead of RANDOMIZE
 	
-	if (destaddr >= rembase) {
+	if (destaddr > rembase) {
 		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase); 
 		printf("3 %s USR VAL \"%d\"\n", randcmd, execline);
+	}
+	else if (destaddr == rembase) {
+		printf("2 %s USR VAL \"%d\"\n", randcmd, execline);
 	}
 	else if (destaddr >= 16384 && destaddr < rembase) {
 		printf("2 %s USR VAL \"%d\"\n", randcmd, rembase +bytes); 
