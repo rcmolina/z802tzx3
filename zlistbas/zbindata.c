@@ -219,7 +219,13 @@ else if (remspec || remzx81) {
 		printf("3 %s USR VAL \"%d\"\n", randcmd, execline);
 	}
 	else if (execline >= 16384) printf("2 %s USR VAL \"%d\"\n", randcmd, execline);
-	else printf("2 %s USR VAL \"%d\"\n", randcmd, rembase);
+	else {
+		if (remzx81) printf("2 REM %s USR VAL \"%d\"\n", randcmd, rembase);
+		if (remspec) {
+		   printf("2 REM for UDG: POKE 23675,%d: POKE 23676,%d\n",rembase%256, rembase/256);
+		   printf("3 REM for CHARS: POKE 23606,%d: POKE 23607,%d\n",rembase%256, (rembase/256)-1);
+		}
+	}
 }
 
 
